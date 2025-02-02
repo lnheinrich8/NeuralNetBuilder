@@ -1,0 +1,13 @@
+{
+    "files": [
+        "form_main.ui",
+        "form_createmodel.ui",
+        "uicode_MainWindow.py",
+        "source_Misc.py",
+        "source_Forecast.py",
+        "uicode_CreateModelWindow.py",
+        "uisource_DrawingWidget.py",
+        "source_SequentialModel.py",
+        "uisource_GraphWidget.py"
+    ]
+}
