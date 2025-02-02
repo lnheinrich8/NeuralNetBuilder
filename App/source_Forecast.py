@@ -27,7 +27,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 def forecast(df, layers_config, target_variable, training_cols=["open", "high", "low", "close", "volume"], forecast_period=10, epochs=10, step_future=2, step_past=16, dropout=0.2, optimizer='adam', loss='mse', past_years_iter=0):
     today = df['date'].max()
     year_iter = past_years_iter
-    forecast_variable = training_cols[0]
+    forecast_variable = target_variable
 
     for i in range(year_iter, -1, -1):
         df2 = df.copy()
@@ -102,25 +102,4 @@ def forecast(df, layers_config, target_variable, training_cols=["open", "high", 
             df_forecast[forecast_variable].iloc[i] = price + offset
             i += 1
 
-
         return df_forecast
-
-        # # Prepare actual data for comparison
-        # actual = df_actual[['date', forecast_variable]]
-        # actual['date'] = pd.to_datetime(actual['date'])
-        # actual = actual.loc[actual['date'] >= last_training_date]  # Start from the day after the last date in 'original'
-        # actual = actual.loc[actual['date'] <= last_forecast_date]
-
-
-        # fig = go.Figure()
-        # fig.add_trace(go.Scatter(x=training['date'], y=training[forecast_variable], mode='lines', name='Historical'))
-        # fig.add_trace(go.Scatter(x=df_forecast['date'], y=df_forecast[forecast_variable], mode='lines', name='Forecasted'))
-        # fig.add_trace(go.Scatter(x=actual['date'], y=actual[forecast_variable], mode='lines', name='Actual'))
-        # fig.update_layout(
-        #     title='Stock Data and Forecast: ' + last_training_date.strftime('%Y-%m-%d'),
-        #     xaxis_title='Date',
-        #     yaxis_title=forecast_variable,
-        #     hovermode='x unified'  # Enable hover on the same x-axis
-        # )
-
-        # fig.show()

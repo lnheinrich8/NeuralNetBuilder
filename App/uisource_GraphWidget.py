@@ -13,7 +13,7 @@ class GraphWidget(QWidget):
         self.margin = 10
         self.line_color = QColor(242, 7, 74)
         self.forecast_line_color = QColor(0, 0, 255)
-        self.background_color = QColor(75, 75, 75)
+        self.background_color = QColor(0, 0, 0)
         self.axis_color = QColor(60, 60, 60)
 
         # cursor shi
@@ -21,13 +21,14 @@ class GraphWidget(QWidget):
         self.setAttribute(Qt.WA_Hover, True)
         self.setMouseTracking(True)
         self.mouse_pos = None
-        self.crosshair_color = QColor(0, 0, 0)
+        self.crosshair_color = QColor(200, 200, 200)
 
         self.visible_start = 0  # start index of visible data
         self.visible_window = 100  # number of data points visible at a time
 
 
     def set_data(self, df, graph_variable):
+        self.forecast_len = None
         self.df = None
         self.df = df
         self.graph_variable = None
@@ -69,7 +70,7 @@ class GraphWidget(QWidget):
 
     def paintEvent(self, event):
         painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.Antialiasing, False)
 
         # draw background
         painter.fillRect(self.rect(), self.background_color)
@@ -94,7 +95,7 @@ class GraphWidget(QWidget):
 
 
     def draw_graph(self, painter):
-        painter.setPen(QPen(self.line_color, 2))
+        painter.setPen(QPen(self.line_color, 1))
         rect = self.rect()
 
         # visible slice of data
@@ -128,7 +129,7 @@ class GraphWidget(QWidget):
                 if i < len(points) - self.forecast_len - 1:
                     painter.drawLine(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1])
                 else:
-                    painter.setPen(QPen(self.forecast_line_color, 2))
+                    painter.setPen(QPen(self.forecast_line_color, 1))
                     painter.drawLine(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1])
         else:
             for i in range(len(points) - 1):
@@ -167,6 +168,9 @@ class GraphWidget(QWidget):
 
             # draw the graph variable on the crosshair
             if not column_data.empty:
+                painter = QPainter(self)
+                painter.setPen(QPen(self.crosshair_color, 1))
+
                 # data point value
                 data_value = column_data.iloc[index]
                 val_text = f"{self.graph_variable}: {data_value:.2f}"
@@ -192,7 +196,7 @@ class GraphWidget(QWidget):
     def wheelEvent(self, event):
         if self.df is not None:
             delta = event.angleDelta().y() // -120  # scroll direction (1 step per scroll tick)
-            new_start = self.visible_start - delta * 5  # move 5 data points per scroll tick
+            new_start = self.visible_start - delta * 1  # move 5 data points per scroll tick
             self.visible_start = max(0, min(len(self.df) - self.visible_window, new_start))
 
             if self.forecast_len is not None:

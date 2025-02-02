@@ -28,14 +28,16 @@ class CreateModelWindow(QMainWindow):
 
         # column names from passed df in MainWindow
         self.column_names = column_names
+
         self.target_variable = target_variable
-        self.ui.target_placeholder_label.setText(self.target_variable)
+        self.ui.target_placeholder_label.setText(self.target_variable.upper())
+        self.ui.target_placeholder_label.setStyleSheet("color: violet;")
 
         # right side params initialization
 
-        self.ui.optimizer_combobox.addItems(["SGD", "RMSprop", "Adam","Adamw",
-        "Adadelta", "Adagrad", "Adamax", "Nadam", "Ftrl", "Lion"])
-        self.ui.optimizer_combobox.setCurrentText("Adam")
+        self.ui.optimizer_combobox.addItems(["sgd", "rmsprop", "adam","adamw",
+        "adadelta", "adagrad", "adamax", "nadam", "ftrl", "lion"])
+        self.ui.optimizer_combobox.setCurrentText("adam")
 
         self.ui.loss_combobox.addItems(["binary_crossentropy", "categorical_crossentropy",
         "sparse_categorical_crossentropy", "poisson", "ctc", "kl_divergence", "mean_squared_error",
@@ -45,7 +47,7 @@ class CreateModelWindow(QMainWindow):
 
         self.ui.trainingcols_listwidget.addItems(self.column_names)
         self.ui.trainingcols_listwidget.setSelectionMode(QListWidget.MultiSelection)
-
+        self.ui.trainingcols_listwidget.selectAll()
 
         self.updating_layers = False
         self.layer_count = 0

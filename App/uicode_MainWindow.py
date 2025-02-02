@@ -2,13 +2,11 @@ from PySide6.QtCore import Signal, QThread
 from PySide6.QtWidgets import (
     QMainWindow,
     QApplication,
-    QFileDialog,
     QMessageBox,
     QVBoxLayout
 )
 
 import sys
-import os
 import json
 import source_Misc as mc
 import source_Forecast as fc
@@ -57,7 +55,6 @@ class MainWindow(QMainWindow):
 
         self.df = None
         self.data_loaded = False
-        # self.layer_data = None
         self.model_params = None
 
         # setup combobox
@@ -65,8 +62,6 @@ class MainWindow(QMainWindow):
             self.ui.ticker_combobox.addItem(ticker, ticker)
         self.ui.ticker_combobox.setCurrentIndex(-1)
 
-        self.ui.import_button.setEnabled(False)
-        self.ui.back_button.setEnabled(False)
         self.ui.forecast_progress_label.setVisible(False)
 
         self.ui.createmodel_button.setEnabled(False)
@@ -79,11 +74,8 @@ class MainWindow(QMainWindow):
 
         # ---- CONNECT SIGNALS ----
 
-        # data import stuff
+        # charting data
         self.ui.ticker_combobox.currentIndexChanged.connect(self.on_ticker_combobox_changed)
-        self.ui.fileexplorer_button.clicked.connect(self.on_fileexplorer_button_clicked)
-        self.ui.import_button.clicked.connect(self.on_import_button_clicked)
-        self.ui.back_button.clicked.connect(self.on_back_button_clicked)
 
         # model stuff
         self.ui.createmodel_button.clicked.connect(self.on_createmodel_button_clicked)
@@ -91,7 +83,6 @@ class MainWindow(QMainWindow):
 
         # graph stuff
         self.ui.cols_combobox.currentIndexChanged.connect(self.on_cols_combobox_changed)
-
         self.ui.window10_button.clicked.connect(self.on_timewindow10_changed)
         self.ui.window50_button.clicked.connect(self.on_timewindow50_changed)
         self.ui.window100_button.clicked.connect(self.on_timewindow100_changed)
@@ -107,70 +98,20 @@ class MainWindow(QMainWindow):
     #
     def on_ticker_combobox_changed(self):
         ticker = self.ui.ticker_combobox.currentText()
-        self.ui.currentdata_label.setText("Current Data: " + ticker)
         self.df = mc.get_data(ticker)
-        self.ui.import_button.setEnabled(True)
 
-    def on_fileexplorer_button_clicked(self):
-        file_name, _ = QFileDialog.getOpenFileName(self, "Open CSV File", "", "CSV Files (*.csv)")
+        self.ui.createmodel_button.setEnabled(True)
 
-        if file_name:
-            file_base = os.path.basename(file_name)
-            self.ui.currentdata_label.setText("Current Data: " + file_base)
-
-            self.df = mc.read_csv(file_name)
-
-            self.ui.import_button.setEnabled(True)
-            self.ui.ticker_combobox.blockSignals(True)
-            self.ui.ticker_combobox.setCurrentIndex(-1)
-            self.ui.ticker_combobox.blockSignals(False)
-
-            if self.df is None:
-                message = "Failed to read the CSV file"
-                warning_box = QMessageBox(QMessageBox.Warning, "File Read Error", message, QMessageBox.Ok, self)
-                warning_box.exec()
-        else:
-            self.ui.currentdata_label.setText("Current Data: None")
-            message = "No file selected"
-            warning_box = QMessageBox(QMessageBox.Warning, "No File Selected", message, QMessageBox.Ok, self)
-            warning_box.exec()
-
-    def on_import_button_clicked(self):
-        if self.df is not None:
-            self.ui.ticker_combobox.setEnabled(False)
-            self.ui.fileexplorer_button.setEnabled(False)
-            self.ui.import_button.setEnabled(False)
-            self.ui.back_button.setEnabled(True)
-            self.ui.createmodel_button.setEnabled(True)
-
-            self.data_loaded = True
-
-            self.show_column_options(True)
-            self.graph_widget.set_data(self.df, 'open')
-
-    def on_back_button_clicked(self):
-        self.df = None
-        self.ui.ticker_combobox.setEnabled(True)
-        self.ui.fileexplorer_button.setEnabled(True)
-        self.ui.createmodel_button.setEnabled(False)
-
-        self.ui.back_button.setEnabled(False)
-        self.ui.ticker_combobox.blockSignals(True)
-        self.ui.ticker_combobox.setCurrentIndex(-1)
-        self.ui.ticker_combobox.blockSignals(False)
-        self.ui.currentdata_label.setText("Current Data: None")
-        self.data_loaded = False
-
-        self.show_column_options(False)
-        self.graph_widget.clear_graph()
+        self.data_loaded = True
+        self.show_column_options(True)
+        self.graph_widget.set_data(self.df, 'open')
 
     def show_column_options(self, show):
+        self.ui.cols_combobox.clear()
         if show:
             filtered_df = self.df.drop(columns=['date'], errors='ignore')
             column_names = filtered_df.columns.tolist()
             self.ui.cols_combobox.addItems(column_names)
-        else:
-            self.ui.cols_combobox.clear()
 
     #
     # graph stuff
@@ -217,6 +158,9 @@ class MainWindow(QMainWindow):
         self.ui.forecast_button.setEnabled(True)
 
     def on_forecast_button_clicked(self):
+        # disable stuff while forecasting in progress
+        self.enableb_forecast(False)
+
         layer_data = self.model_params['layer_widgets_dict']
         # create layer config and initialize dropout (dropout is in the layer_widgets_dict)
         layer_neuron_list = []
@@ -243,23 +187,23 @@ class MainWindow(QMainWindow):
         self.forecast_worker.finished.connect(self.on_forecast_complete)
         self.forecast_worker.start()
 
+    # this might grow with more functions later in dev
     def enableb_forecast(self, bool):
         self.ui.createmodel_button.setEnabled(bool)
         self.ui.forecast_button.setEnabled(bool)
-        self.ui.back_button.setEnabled(bool)
 
     def on_forecast_complete(self, result):
         self.ui.forecast_progress_label.setVisible(False)
         self.enableb_forecast(True) # enable all the buttons here where the thread finishes
 
         if isinstance(result, Exception):
-            # Handle the exception
+            # handle the exception
             error_dialog = QMessageBox()
             error_dialog.setIcon(QMessageBox.Critical)
             error_dialog.setWindowTitle("Forecast Error")
             error_dialog.setText("An error occurred while forecasting.")
             print(result)
-            error_dialog.setInformativeText(str(result))  # Show the exception message
+            error_dialog.setInformativeText(str(result))  # show the exception message
             error_dialog.exec()
         else:
             result = result.iloc[1:]
