@@ -113,7 +113,7 @@ class Ui_MainWindow(object):
         self.forecast_button.setGeometry(QRect(897, 175, 79, 24))
         self.cols_combobox = QComboBox(self.tab1)
         self.cols_combobox.setObjectName(u"cols_combobox")
-        self.cols_combobox.setGeometry(QRect(897, 133, 81, 20))
+        self.cols_combobox.setGeometry(QRect(896, 133, 81, 20))
         self.datapointtime_combobox = QComboBox(self.tab1)
         self.datapointtime_combobox.setObjectName(u"datapointtime_combobox")
         self.datapointtime_combobox.setGeometry(QRect(266, 102, 72, 24))

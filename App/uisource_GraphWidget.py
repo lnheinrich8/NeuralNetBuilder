@@ -191,53 +191,51 @@ class GraphWidget(QWidget):
                              int(candle_width), int(abs(open_y - close_y)))
 
 
-
-
     def draw_crosshair(self, painter):
         if self.mouse_pos == QPointF(-1, -1):
             return
-
         painter.setPen(QPen(self.crosshair_color, 1))
         rect = self.rect()
-
-        # vertical line of the crosshair
+        # vertical and horizontal lines of the crosshair
         painter.drawLine(self.mouse_pos.x(), rect.height(), self.mouse_pos.x(), 0)
-        # horizontal line of the crosshair
         painter.drawLine(rect.width(), self.mouse_pos.y(), 0, self.mouse_pos.y())
+        if self.df is None or self.df.empty:
+            return
 
-        # draw the variable
-        if self.df is not None and self.graph_variable is not None:
-            # get the visible slice of data
-            visible_data = self.df.iloc[self.visible_start:self.visible_start + self.visible_window]
-            if visible_data.empty:
-                return
+        # visible slice of data
+        visible_data = self.df.iloc[self.visible_start:self.visible_start + self.visible_window]
+        if visible_data.empty:
+            return
+        # min and max price values in the current window
+        data_min = visible_data["low"].min()
+        data_max = visible_data["high"].max()
+        # convert Y-position to a price value
+        price_range = data_max - data_min
+        if price_range == 0:
+            return
+        y_scale = (rect.height() - 2 * self.margin) / price_range
+        price_at_cursor = data_max - ((self.mouse_pos.y() - self.margin) / y_scale)
 
-            column_data = pd.to_numeric(visible_data[self.graph_variable]).dropna()
+        # display the price
+        price_text = f"{price_at_cursor:.2f}"
+        text_rect = painter.boundingRect(rect, Qt.AlignLeft, price_text)
+        text_x = rect.width() - text_rect.width() - 5
+        text_y = max(self.mouse_pos.y() - 10, 15)  # Adjust to avoid going off-screen
+        painter.setPen(QPen(Qt.white))
+        painter.drawText(text_x, text_y, price_text)
 
-            # calculate the corresponding index in the data (round to the nearest data point)
-            graph_width = rect.width() - 2 * self.margin
-            index_offset = (self.mouse_pos.x() - self.margin) / (graph_width / (len(column_data) - 1))
-            index = int(round(index_offset))
-
-            # ensure the index is within valid bounds
-            index = max(0, min(len(column_data) - 1, index))
-
-            # draw the graph variable on the crosshair
-            if not column_data.empty:
-                painter = QPainter(self)
-                painter.setPen(QPen(self.crosshair_color, 1))
-
-                # data point value
-                data_value = column_data.iloc[index]
-                val_text = f"{self.graph_variable}: {data_value:.2f}"
-                font_metrics = painter.fontMetrics()
-                val_text_width = font_metrics.horizontalAdvance(val_text)
-                painter.drawText(self.mouse_pos.x() - val_text_width - 5, self.mouse_pos.y() - 5, val_text)
-                # data point date
-                date = visible_data['date'].iloc[index]
-                date_text = f"date: {date}"
-                date_text_width = font_metrics.horizontalAdvance(date_text)
-                painter.drawText(self.mouse_pos.x() - date_text_width - 5, self.mouse_pos.y() + 14, date_text)
+        # display the date
+        index_relative = int((self.mouse_pos.x() / rect.width()) * len(visible_data))
+        index_relative = max(0, min(len(visible_data) - 1, index_relative))  # Clamp to bounds
+        index = self.visible_start + index_relative
+        date = self.df['date'].iloc[index]
+        date_text = f"{date}"
+        font_metrics = painter.fontMetrics()
+        date_text_width = font_metrics.horizontalAdvance(date_text)
+        text_x = self.mouse_pos.x() - date_text_width - 5
+        text_y = rect.height() - font_metrics.height() + 5  # Place near the bottom
+        painter.setPen(QPen(Qt.white))
+        painter.drawText(text_x, text_y, date_text)
 
 
     # --- EVENTS ---
