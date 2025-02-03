@@ -61,22 +61,12 @@
        </rect>
       </property>
      </widget>
-     <widget class="QComboBox" name="cols_combobox">
-      <property name="geometry">
-       <rect>
-        <x>250</x>
-        <y>103</y>
-        <width>81</width>
-        <height>20</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>20</x>
         <y>100</y>
-        <width>211</width>
+        <width>212</width>
         <height>26</height>
        </rect>
       </property>
@@ -164,7 +154,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>30</x>
@@ -189,8 +179,8 @@
      <widget class="QLabel" name="forecast_progress_label">
       <property name="geometry">
        <rect>
-        <x>903</x>
-        <y>180</y>
+        <x>900</x>
+        <y>200</y>
         <width>70</width>
         <height>16</height>
        </rect>
@@ -202,8 +192,8 @@
      <widget class="QPushButton" name="createmodel_button">
       <property name="geometry">
        <rect>
-        <x>900</x>
-        <y>132</y>
+        <x>897</x>
+        <y>152</y>
         <width>79</width>
         <height>24</height>
        </rect>
@@ -215,14 +205,68 @@
      <widget class="QPushButton" name="forecast_button">
       <property name="geometry">
        <rect>
-        <x>900</x>
-        <y>155</y>
+        <x>897</x>
+        <y>175</y>
         <width>79</width>
         <height>24</height>
        </rect>
       </property>
       <property name="text">
        <string>Forecast</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="cols_combobox">
+      <property name="geometry">
+       <rect>
+        <x>897</x>
+        <y>133</y>
+        <width>81</width>
+        <height>20</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="datapointtime_combobox">
+      <property name="geometry">
+       <rect>
+        <x>266</x>
+        <y>102</y>
+        <width>72</width>
+        <height>24</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="line_button">
+      <property name="geometry">
+       <rect>
+        <x>337</x>
+        <y>102</y>
+        <width>24</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normaloff>icons/line_icon.png</normaloff>icons/line_icon.png</iconset>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="candle_button">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>102</y>
+        <width>24</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normaloff>icons/candle_icon.png</normaloff>icons/candle_icon.png</iconset>
       </property>
      </widget>
     </widget>

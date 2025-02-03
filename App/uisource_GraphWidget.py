@@ -10,6 +10,7 @@ class GraphWidget(QWidget):
         self.df = None
         self.forecast_len = None
         self.graph_variable = None
+        self.draw_linegraph = False
         self.margin = 10
         self.line_color = QColor(242, 7, 74)
         self.forecast_line_color = QColor(0, 0, 255)
@@ -24,7 +25,7 @@ class GraphWidget(QWidget):
         self.crosshair_color = QColor(200, 200, 200)
 
         self.visible_start = 0  # start index of visible data
-        self.visible_window = 100  # number of data points visible at a time
+        self.visible_window = 50  # number of data points visible at a time
 
 
     def set_data(self, df, graph_variable):
@@ -35,6 +36,11 @@ class GraphWidget(QWidget):
         self.graph_variable = graph_variable
 
         self.visible_start = max(0, len(df) - self.visible_window) # last n points
+        self.update()
+
+    # line or candle
+    def set_lorc(self, line):
+        self.draw_linegraph = line
         self.update()
 
     def set_forecast_result(self, result_df):
@@ -58,14 +64,14 @@ class GraphWidget(QWidget):
             self.visible_window = len(self.df)
             max_visible_start = len(self.df) - self.visible_window
             self.visible_start = max(0, min(max_visible_start, self.visible_start))
-
         self.update()
-
 
     def clear_graph(self):
         self.df = None
         self.forecast_len = None
         self.update()
+
+
 
 
     def paintEvent(self, event):
@@ -77,9 +83,14 @@ class GraphWidget(QWidget):
         # draw axes
         self.draw_sumlines(painter)
         # draw graph
+        painter.setRenderHint(QPainter.Antialiasing, True)
         if self.df is not None and len(self.df) > 0:
-            self.draw_graph(painter)
+            if self.visible_window > 100 or self.draw_linegraph:
+                self.draw_line(painter, self.df)
+            else:
+                self.draw_candles(painter, self.df)
         # draw crosshair
+        painter.setRenderHint(QPainter.Antialiasing, False)
         if self.mouse_pos is not None:
             self.draw_crosshair(painter)
 
@@ -94,12 +105,12 @@ class GraphWidget(QWidget):
             painter.drawLine(x, rect.height(), x, 0)
 
 
-    def draw_graph(self, painter):
-        painter.setPen(QPen(self.line_color, 1))
+    def draw_line(self, painter, df):
+        painter.setPen(QPen(self.line_color, 2))
         rect = self.rect()
 
         # visible slice of data
-        visible_data = self.df.iloc[self.visible_start:self.visible_start + self.visible_window]
+        visible_data = df.iloc[self.visible_start:self.visible_start + self.visible_window]
         if visible_data.empty:
             return
 
@@ -134,6 +145,51 @@ class GraphWidget(QWidget):
         else:
             for i in range(len(points) - 1):
                 painter.drawLine(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1])
+
+
+    def draw_candles(self, painter, df):
+        painter.setPen(QPen(self.line_color, 2))
+        rect = self.rect()
+
+        # Visible slice of data
+        visible_data = df.iloc[self.visible_start:self.visible_start + self.visible_window]
+        if visible_data.empty:
+            return
+
+        # Normalize data
+        data_min = visible_data[['low']].min().values[0]
+        data_max = visible_data[['high']].max().values[0]
+        data_range = data_max - data_min
+
+        # Avoid division by zero
+        y_scale = (rect.height() - 2 * self.margin) / data_range if data_range != 0 else 0
+
+        # Calculate candle width
+        candle_width = max(5, (rect.width() - 2 * self.margin) / (len(visible_data) * 2))
+
+        for i, (index, row) in enumerate(visible_data.iterrows()):
+            x = self.margin + i * ((rect.width() - 2 * self.margin) / (len(visible_data) - 1))
+
+            # Convert prices to Y coordinates
+            high_y = rect.height() - self.margin - (row['high'] - data_min) * y_scale
+            low_y = rect.height() - self.margin - (row['low'] - data_min) * y_scale
+            open_y = rect.height() - self.margin - (row['open'] - data_min) * y_scale
+            close_y = rect.height() - self.margin - (row['close'] - data_min) * y_scale
+
+            # Determine candle color
+            if row['close'] >= row['open']:
+                candle_color = QColor("green")  # Bullish
+            else:
+                candle_color = QColor("red")    # Bearish
+
+            painter.setPen(QPen(candle_color, 1))
+            painter.drawLine(int(x), int(high_y), int(x), int(low_y))
+
+            painter.setPen(candle_color)
+            painter.setBrush(candle_color)
+            painter.drawRect(int(x - candle_width / 2), int(min(open_y, close_y)),
+                             int(candle_width), int(abs(open_y - close_y)))
+
 
 
 
@@ -182,13 +238,6 @@ class GraphWidget(QWidget):
                 date_text = f"date: {date}"
                 date_text_width = font_metrics.horizontalAdvance(date_text)
                 painter.drawText(self.mouse_pos.x() - date_text_width - 5, self.mouse_pos.y() + 14, date_text)
-
-                # draw the circle at the current data point
-                x_pos = self.margin + index * ((rect.width() - 2 * self.margin) / (len(visible_data) - 1))
-                y_pos = rect.height() / 2 - (data_value - (column_data.min() + (column_data.max() - column_data.min()) / 2)) * ((rect.height() - 2 * self.margin) / (column_data.max() - column_data.min()))
-                painter.setPen(QPen(QColor(35, 225, 232)))
-                painter.setBrush(QColor(35, 225, 232))
-                painter.drawEllipse(QPointF(x_pos, y_pos), 3, 3)
 
 
     # --- EVENTS ---

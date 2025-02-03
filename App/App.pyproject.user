@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 13.0.0, 2025-02-01T20:16:51. -->
+<!-- Written by QtCreator 13.0.0, 2025-02-02T22:41:55. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -179,7 +179,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">uicode_MainWindow.py</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">PythonEditor.RunConfiguration.C:/Users/lnhei/OneDrive/Desktop/personal_dev/QTApp_personaldev/TradingApp/App/uicode_MainWindow.py</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">C:/Users/lnhei/OneDrive/Desktop/personal_dev/QTApp_personaldev/TradingApp/App/uicode_MainWindow.py</value>
-    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">false</value>
+    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">true</value>
     <value type="QString" key="PythonEditor.RunConfiguation.Script">C:\Users\lnhei\OneDrive\Desktop\personal_dev\QTApp_personaldev\TradingApp\App\uicode_MainWindow.py</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
@@ -198,7 +198,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">source_Misc.py</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">PythonEditor.RunConfiguration.C:/Users/lnhei/OneDrive/Desktop/personal_dev/QTApp_personaldev/TradingApp/App/source_Misc.py</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">C:/Users/lnhei/OneDrive/Desktop/personal_dev/QTApp_personaldev/TradingApp/App/source_Misc.py</value>
-    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">false</value>
+    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">true</value>
     <value type="QString" key="PythonEditor.RunConfiguation.Script">C:\Users\lnhei\OneDrive\Desktop\personal_dev\QTApp_personaldev\TradingApp\App\source_Misc.py</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
@@ -217,7 +217,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">source_Forecast.py</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">PythonEditor.RunConfiguration.C:/Users/lnhei/OneDrive/Desktop/personal_dev/QTApp_personaldev/TradingApp/App/source_Forecast.py</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">C:/Users/lnhei/OneDrive/Desktop/personal_dev/QTApp_personaldev/TradingApp/App/source_Forecast.py</value>
-    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">false</value>
+    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">true</value>
     <value type="QString" key="PythonEditor.RunConfiguation.Script">C:\Users\lnhei\OneDrive\Desktop\personal_dev\QTApp_personaldev\TradingApp\App\source_Forecast.py</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
@@ -236,7 +236,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">uicode_CreateModelWindow.py</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">PythonEditor.RunConfiguration.C:/Users/lnhei/OneDrive/Desktop/personal_dev/QTApp_personaldev/TradingApp/App/uicode_CreateModelWindow.py</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">C:/Users/lnhei/OneDrive/Desktop/personal_dev/QTApp_personaldev/TradingApp/App/uicode_CreateModelWindow.py</value>
-    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">false</value>
+    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">true</value>
     <value type="QString" key="PythonEditor.RunConfiguation.Script">C:\Users\lnhei\OneDrive\Desktop\personal_dev\QTApp_personaldev\TradingApp\App\uicode_CreateModelWindow.py</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
@@ -255,7 +255,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">uisource_DrawingWidget.py</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">PythonEditor.RunConfiguration.C:/Users/lnhei/OneDrive/Desktop/personal_dev/QTApp_personaldev/TradingApp/App/uisource_DrawingWidget.py</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">C:/Users/lnhei/OneDrive/Desktop/personal_dev/QTApp_personaldev/TradingApp/App/uisource_DrawingWidget.py</value>
-    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">false</value>
+    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">true</value>
     <value type="QString" key="PythonEditor.RunConfiguation.Script">C:\Users\lnhei\OneDrive\Desktop\personal_dev\QTApp_personaldev\TradingApp\App\uisource_DrawingWidget.py</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
@@ -274,7 +274,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">source_SequentialModel.py</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">PythonEditor.RunConfiguration.C:/Users/lnhei/OneDrive/Desktop/personal_dev/QTApp_personaldev/TradingApp/App/source_SequentialModel.py</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">C:/Users/lnhei/OneDrive/Desktop/personal_dev/QTApp_personaldev/TradingApp/App/source_SequentialModel.py</value>
-    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">false</value>
+    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">true</value>
     <value type="QString" key="PythonEditor.RunConfiguation.Script">C:\Users\lnhei\OneDrive\Desktop\personal_dev\QTApp_personaldev\TradingApp\App\source_SequentialModel.py</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
@@ -293,7 +293,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">uisource_GraphWidget.py</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">PythonEditor.RunConfiguration.C:/Users/lnhei/OneDrive/Desktop/personal_dev/QTApp_personaldev/TradingApp/App/uisource_GraphWidget.py</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">C:/Users/lnhei/OneDrive/Desktop/personal_dev/QTApp_personaldev/TradingApp/App/uisource_GraphWidget.py</value>
-    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">false</value>
+    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">true</value>
     <value type="QString" key="PythonEditor.RunConfiguation.Script">C:\Users\lnhei\OneDrive\Desktop\personal_dev\QTApp_personaldev\TradingApp\App\uisource_GraphWidget.py</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
