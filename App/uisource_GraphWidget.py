@@ -25,6 +25,7 @@ class GraphWidget(QWidget):
         self.crosshair_color = QColor(200, 200, 200)
 
         self.visible_start = 0  # start index of visible data
+        self.visible_end = 0
         self.visible_window = 50  # number of data points visible at a time
 
 
@@ -35,7 +36,8 @@ class GraphWidget(QWidget):
         self.graph_variable = None
         self.graph_variable = graph_variable
 
-        self.visible_start = max(0, len(df) - self.visible_window) # last n points
+        self.visible_start = len(df) - self.visible_window # last n points
+        self.visible_end = len(df)
         self.update()
 
     # line or candle
@@ -43,35 +45,24 @@ class GraphWidget(QWidget):
         self.draw_linegraph = line
         self.update()
 
-    def set_forecast_result(self, result_df):
+    def set_forecast_result(self, result_df): # TODOOOOOOOOOOOOOO change to visible_end
         self.df = pd.concat([self.df, result_df], ignore_index=True)
         self.forecast_len = len(result_df)
         self.visible_start = max(0, len(self.df) - self.visible_window) # last n points
         self.update()
 
-    def set_params(self, window):
+    def set_params(self, window): # TODOOOOOOOOOOOO this totally needs testing bruh
         if window != 'max':
-            new_window = window
-            if new_window < self.visible_window:  # window is decreasing
-                # adjust visible start to keep the most recent (rightmost) data point constant
-                self.visible_window = new_window
-                self.visible_start = max(0, len(self.df) - new_window)
-            else:
-                self.visible_window = new_window
-                max_visible_start = len(self.df) - self.visible_window
-                self.visible_start = max(0, min(max_visible_start, self.visible_start))
+            self.visible_window = window
         else:
             self.visible_window = len(self.df)
-            max_visible_start = len(self.df) - self.visible_window
-            self.visible_start = max(0, min(max_visible_start, self.visible_start))
+            self.visible_end = len(self.df)
         self.update()
 
     def clear_graph(self):
         self.df = None
         self.forecast_len = None
         self.update()
-
-
 
 
     def paintEvent(self, event):
@@ -110,7 +101,7 @@ class GraphWidget(QWidget):
         rect = self.rect()
 
         # visible slice of data
-        visible_data = df.iloc[self.visible_start:self.visible_start + self.visible_window]
+        visible_data = df.iloc[self.visible_end - self.visible_window:self.visible_end]
         if visible_data.empty:
             return
 
@@ -151,32 +142,30 @@ class GraphWidget(QWidget):
         painter.setPen(QPen(self.line_color, 2))
         rect = self.rect()
 
-        # Visible slice of data
-        visible_data = df.iloc[self.visible_start:self.visible_start + self.visible_window]
+        # visible slice of data
+        visible_data = df.iloc[self.visible_end - self.visible_window:self.visible_end]
         if visible_data.empty:
             return
 
-        # Normalize data
+        # normalize data
         data_min = visible_data[['low']].min().values[0]
         data_max = visible_data[['high']].max().values[0]
         data_range = data_max - data_min
 
-        # Avoid division by zero
+        # avoid division by zero
         y_scale = (rect.height() - 2 * self.margin) / data_range if data_range != 0 else 0
 
-        # Calculate candle width
+        # candle width
         candle_width = max(5, (rect.width() - 2 * self.margin) / (len(visible_data) * 2))
 
         for i, (index, row) in enumerate(visible_data.iterrows()):
             x = self.margin + i * ((rect.width() - 2 * self.margin) / (len(visible_data) - 1))
 
-            # Convert prices to Y coordinates
             high_y = rect.height() - self.margin - (row['high'] - data_min) * y_scale
             low_y = rect.height() - self.margin - (row['low'] - data_min) * y_scale
             open_y = rect.height() - self.margin - (row['open'] - data_min) * y_scale
             close_y = rect.height() - self.margin - (row['close'] - data_min) * y_scale
 
-            # Determine candle color
             if row['close'] >= row['open']:
                 candle_color = QColor("green")  # Bullish
             else:
@@ -203,7 +192,7 @@ class GraphWidget(QWidget):
             return
 
         # visible slice of data
-        visible_data = self.df.iloc[self.visible_start:self.visible_start + self.visible_window]
+        visible_data = self.df.iloc[self.visible_end - self.visible_window:self.visible_end]
         if visible_data.empty:
             return
         # min and max price values in the current window
@@ -225,10 +214,11 @@ class GraphWidget(QWidget):
         painter.drawText(text_x, text_y, price_text)
 
         # display the date
-        index_relative = int((self.mouse_pos.x() / rect.width()) * len(visible_data))
-        index_relative = max(0, min(len(visible_data) - 1, index_relative))  # Clamp to bounds
-        index = self.visible_start + index_relative
-        date = self.df['date'].iloc[index]
+        graph_width = rect.width() - 2 * self.margin
+        index_offset = (self.mouse_pos.x() - self.margin) / (graph_width / (len(visible_data) - 1))
+        index = int(round(index_offset))
+        index = max(0, min(len(visible_data) - 1, index))
+        date = visible_data['date'].iloc[index]
         date_text = f"{date}"
         font_metrics = painter.fontMetrics()
         date_text_width = font_metrics.horizontalAdvance(date_text)
@@ -241,10 +231,10 @@ class GraphWidget(QWidget):
     # --- EVENTS ---
 
     def wheelEvent(self, event):
-        if self.df is not None:
+        if self.df is not None and self.visible_window != len(self.df):
             delta = event.angleDelta().y() // -120  # scroll direction (1 step per scroll tick)
-            new_start = self.visible_start - delta * 1  # move 5 data points per scroll tick
-            self.visible_start = max(0, min(len(self.df) - self.visible_window, new_start))
+            change_end = self.visible_end - delta * 1  # move 1 data points per scroll tick
+            self.visible_end = min(len(self.df), change_end)
 
             if self.forecast_len is not None:
                 self.df = self.df.iloc[:-self.forecast_len]
