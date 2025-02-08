@@ -82,11 +82,12 @@ class MainWindow(QMainWindow):
         # model stuff
         self.ui.createmodel_button.clicked.connect(self.on_createmodel_button_clicked)
         self.ui.forecast_button.clicked.connect(self.on_forecast_button_clicked)
-        self.ui.cols_combobox.currentIndexChanged.connect(self.on_cols_combobox_changed) # TODOOO edit this behavior
+        # self.ui.cols_combobox.currentIndexChanged.connect(self.on_cols_combobox_changed) # TODOOO edit this behavior
 
         # graph stuff
         self.ui.candle_button.clicked.connect(self.on_candle_button_clicked)
         self.ui.line_button.clicked.connect(self.on_line_button_clicked)
+        self.ui.arrow_button.clicked.connect(self.on_arrow_button_clicked)
 
         self.ui.window10_button.clicked.connect(self.on_timewindow10_changed)
         self.ui.window50_button.clicked.connect(self.on_timewindow50_changed)
@@ -109,7 +110,7 @@ class MainWindow(QMainWindow):
 
         self.data_loaded = True
         self.show_column_options(True)
-        self.graph_widget.set_data(self.df, 'open')
+        self.graph_widget.set_data(self.df, 'close') # closing price hard coded for the line graph
 
     def show_column_options(self, show):
         self.ui.cols_combobox.clear()
@@ -126,6 +127,9 @@ class MainWindow(QMainWindow):
         self.graph_widget.set_lorc(False)
     def on_line_button_clicked(self):
         self.graph_widget.set_lorc(True)
+
+    def on_arrow_button_clicked(self):
+        self.graph_widget.goto_last()
 
     def on_timewindow10_changed(self):
         if self.df is not None:
@@ -151,9 +155,9 @@ class MainWindow(QMainWindow):
     # forecast model stuff
     #
 
-    def on_cols_combobox_changed(self):
-        if self.ui.cols_combobox.count() != 0:
-            self.graph_widget.set_data(self.df, self.ui.cols_combobox.currentText())
+    # def on_cols_combobox_changed(self):
+    #     if self.ui.cols_combobox.count() != 0:
+    #         self.graph_widget.set_data(self.df, self.ui.cols_combobox.currentText())
 
     def on_createmodel_button_clicked(self):
         filtered_df = self.df.drop(columns=['date'], errors='ignore')

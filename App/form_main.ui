@@ -269,6 +269,23 @@
         <normaloff>icons/candle_icon.png</normaloff>icons/candle_icon.png</iconset>
       </property>
      </widget>
+     <widget class="QPushButton" name="arrow_button">
+      <property name="geometry">
+       <rect>
+        <x>870</x>
+        <y>102</y>
+        <width>24</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normaloff>icons/arrow_icon.png</normaloff>icons/arrow_icon.png</iconset>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab2">
      <attribute name="title">

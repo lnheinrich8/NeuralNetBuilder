@@ -64,6 +64,10 @@ class GraphWidget(QWidget):
         self.forecast_len = None
         self.update()
 
+    def goto_last(self):
+        self.visible_end = len(self.df)
+        self.update()
+
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -159,7 +163,11 @@ class GraphWidget(QWidget):
         candle_width = max(5, (rect.width() - 2 * self.margin) / (len(visible_data) * 2))
 
         for i, (index, row) in enumerate(visible_data.iterrows()):
-            x = self.margin + i * ((rect.width() - 2 * self.margin) / (len(visible_data) - 1))
+            if self.visible_window != 10:
+                x = self.margin + i * ((rect.width() - 2 * self.margin) / (len(visible_data) - 1))
+            else: # some weird shit was happening with 10 candles showing so this is the shitty fix
+                normalized_i = (i - (len(visible_data) - 1) / 2) / ((len(visible_data) - 1) / 2)
+                x = (rect.width() / 2) + normalized_i * 0.95 * (rect.width() - 2 * self.margin) / 2
 
             high_y = rect.height() - self.margin - (row['high'] - data_min) * y_scale
             low_y = rect.height() - self.margin - (row['low'] - data_min) * y_scale
