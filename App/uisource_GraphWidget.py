@@ -7,10 +7,14 @@ import pandas as pd
 class GraphWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+
         self.df = None
+
         self.forecast_len = None
+
         self.graph_variable = None
         self.draw_linegraph = False
+
         self.margin = 10
         self.line_color = QColor(242, 7, 74)
         self.forecast_line_color = QColor(0, 0, 255)
@@ -24,7 +28,6 @@ class GraphWidget(QWidget):
         self.mouse_pos = None
         self.crosshair_color = QColor(200, 200, 200)
 
-        self.visible_start = 0  # start index of visible data
         self.visible_end = 0
         self.visible_window = 50  # number of data points visible at a time
 
@@ -36,7 +39,6 @@ class GraphWidget(QWidget):
         self.graph_variable = None
         self.graph_variable = graph_variable
 
-        self.visible_start = len(df) - self.visible_window # last n points
         self.visible_end = len(df)
         self.update()
 
@@ -48,7 +50,7 @@ class GraphWidget(QWidget):
     def set_forecast_result(self, result_df): # TODOOOOOOOOOOOOOO change to visible_end
         self.df = pd.concat([self.df, result_df], ignore_index=True)
         self.forecast_len = len(result_df)
-        self.visible_start = max(0, len(self.df) - self.visible_window) # last n points
+        self.visible_end = len(self.df)
         self.update()
 
     def set_params(self, window): # TODOOOOOOOOOOOO this totally needs testing bruh
@@ -80,7 +82,7 @@ class GraphWidget(QWidget):
         # draw graph
         painter.setRenderHint(QPainter.Antialiasing, True)
         if self.df is not None and len(self.df) > 0:
-            if self.visible_window > 100 or self.draw_linegraph:
+            if self.visible_window > 200 or self.draw_linegraph:
                 self.draw_line(painter, self.df)
             else:
                 self.draw_candles(painter, self.df)
@@ -135,7 +137,7 @@ class GraphWidget(QWidget):
                 if i < len(points) - self.forecast_len - 1:
                     painter.drawLine(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1])
                 else:
-                    painter.setPen(QPen(self.forecast_line_color, 1))
+                    painter.setPen(QPen(self.forecast_line_color, 2))
                     painter.drawLine(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1])
         else:
             for i in range(len(points) - 1):
@@ -162,30 +164,98 @@ class GraphWidget(QWidget):
         # candle width
         candle_width = max(5, (rect.width() - 2 * self.margin) / (len(visible_data) * 2))
 
-        for i, (index, row) in enumerate(visible_data.iterrows()):
-            if self.visible_window != 10:
+        # if self.forecast_len is not None:
+        #     points = []
+        #     for i, (index, row) in enumerate(visible_data.iterrows()):
+        #         if i < self.forecast_len:
+        #             x = self.margin + i * ((rect.width() - 2 * self.margin) / (len(visible_data) - 1))
+
+        #             high_y = rect.height() - self.margin - (row['high'] - data_min) * y_scale
+        #             low_y = rect.height() - self.margin - (row['low'] - data_min) * y_scale
+        #             open_y = rect.height() - self.margin - (row['open'] - data_min) * y_scale
+        #             close_y = rect.height() - self.margin - (row['close'] - data_min) * y_scale
+
+        #             if row['close'] >= row['open']:
+        #                 candle_color = QColor("green")  # Bullish
+        #             else:
+        #                 candle_color = QColor("red")    # Bearish
+
+        #             painter.setPen(QPen(candle_color, 1))
+        #             painter.drawLine(int(x), int(high_y), int(x), int(low_y))
+
+        #             painter.setPen(candle_color)
+        #             painter.setBrush(candle_color)
+        #             painter.drawRect(int(x - candle_width / 2), int(min(open_y, close_y)),
+        #                             int(candle_width), int(abs(open_y - close_y)))
+        #         else:
+        #             x = self.margin + i * ((rect.width() - 2 * self.margin) / (len(visible_data) - 1))
+        #             close_y = rect.height() - self.margin - (row['close'] - data_min) * y_scale
+        #             points.append((x, close_y))
+
+        #     for i in range(len(points) - 1):
+        #         painter.setPen(QPen(self.forecast_line_color, 2))
+        #         painter.drawLine(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1])
+
+        if self.forecast_len is not None:
+            points = []
+            forecast_start_index = len(visible_data) - self.forecast_len  # forecast start
+
+            for i, (index, row) in enumerate(visible_data.iterrows()):
                 x = self.margin + i * ((rect.width() - 2 * self.margin) / (len(visible_data) - 1))
-            else: # some weird shit was happening with 10 candles showing so this is the shitty fix
-                normalized_i = (i - (len(visible_data) - 1) / 2) / ((len(visible_data) - 1) / 2)
-                x = (rect.width() / 2) + normalized_i * 0.95 * (rect.width() - 2 * self.margin) / 2
+                close_y = rect.height() - self.margin - (row['close'] - data_min) * y_scale
 
-            high_y = rect.height() - self.margin - (row['high'] - data_min) * y_scale
-            low_y = rect.height() - self.margin - (row['low'] - data_min) * y_scale
-            open_y = rect.height() - self.margin - (row['open'] - data_min) * y_scale
-            close_y = rect.height() - self.margin - (row['close'] - data_min) * y_scale
+                if i < forecast_start_index:
+                    if i == forecast_start_index-1: # this isn't a forecasted value but a start for the first line drawn
+                        points.append((x, close_y))
 
-            if row['close'] >= row['open']:
-                candle_color = QColor("green")  # Bullish
-            else:
-                candle_color = QColor("red")    # Bearish
+                    high_y = rect.height() - self.margin - (row['high'] - data_min) * y_scale
+                    low_y = rect.height() - self.margin - (row['low'] - data_min) * y_scale
+                    open_y = rect.height() - self.margin - (row['open'] - data_min) * y_scale
 
-            painter.setPen(QPen(candle_color, 1))
-            painter.drawLine(int(x), int(high_y), int(x), int(low_y))
+                    if row['close'] >= row['open']:
+                        candle_color = QColor("green")  # Bullish
+                    else:
+                        candle_color = QColor("red")    # Bearish
 
-            painter.setPen(candle_color)
-            painter.setBrush(candle_color)
-            painter.drawRect(int(x - candle_width / 2), int(min(open_y, close_y)),
-                             int(candle_width), int(abs(open_y - close_y)))
+                    painter.setPen(QPen(candle_color, 1))
+                    painter.drawLine(int(x), int(high_y), int(x), int(low_y))  # wick
+
+                    painter.setPen(candle_color)
+                    painter.setBrush(candle_color)
+                    painter.drawRect(int(x - candle_width / 2), int(min(open_y, close_y)),
+                                    int(candle_width), int(abs(open_y - close_y)))
+                else:
+                    # forecasted values for line drawing
+                    points.append((x, close_y))
+
+            # draw the forecasted values as a line
+            if len(points) > 1:
+                painter.setPen(QPen(self.forecast_line_color, 2, Qt.SolidLine))
+                for i in range(len(points) - 1):
+                    painter.drawLine(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1])
+
+        else:
+            for i, (index, row) in enumerate(visible_data.iterrows()):
+
+                x = self.margin + i * ((rect.width() - 2 * self.margin) / (len(visible_data) - 1))
+
+                high_y = rect.height() - self.margin - (row['high'] - data_min) * y_scale
+                low_y = rect.height() - self.margin - (row['low'] - data_min) * y_scale
+                open_y = rect.height() - self.margin - (row['open'] - data_min) * y_scale
+                close_y = rect.height() - self.margin - (row['close'] - data_min) * y_scale
+
+                if row['close'] >= row['open']:
+                    candle_color = QColor("green")  # Bullish
+                else:
+                    candle_color = QColor("red")    # Bearish
+
+                painter.setPen(QPen(candle_color, 1))
+                painter.drawLine(int(x), int(high_y), int(x), int(low_y))
+
+                painter.setPen(candle_color)
+                painter.setBrush(candle_color)
+                painter.drawRect(int(x - candle_width / 2), int(min(open_y, close_y)),
+                                 int(candle_width), int(abs(open_y - close_y)))
 
 
     def draw_crosshair(self, painter):

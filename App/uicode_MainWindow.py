@@ -54,7 +54,6 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.df = None
-        self.data_loaded = False
         self.model_params = None
 
         # setup combobox
@@ -82,18 +81,15 @@ class MainWindow(QMainWindow):
         # model stuff
         self.ui.createmodel_button.clicked.connect(self.on_createmodel_button_clicked)
         self.ui.forecast_button.clicked.connect(self.on_forecast_button_clicked)
-        # self.ui.cols_combobox.currentIndexChanged.connect(self.on_cols_combobox_changed) # TODOOO edit this behavior
 
         # graph stuff
         self.ui.candle_button.clicked.connect(self.on_candle_button_clicked)
         self.ui.line_button.clicked.connect(self.on_line_button_clicked)
         self.ui.arrow_button.clicked.connect(self.on_arrow_button_clicked)
 
-        self.ui.window10_button.clicked.connect(self.on_timewindow10_changed)
         self.ui.window50_button.clicked.connect(self.on_timewindow50_changed)
         self.ui.window100_button.clicked.connect(self.on_timewindow100_changed)
         self.ui.window500_button.clicked.connect(self.on_timewindow500_changed)
-        self.ui.window1000_button.clicked.connect(self.on_timewindow1000_changed)
         self.ui.windowmax_button.clicked.connect(self.on_timewindowmax_changed)
 
 
@@ -108,16 +104,8 @@ class MainWindow(QMainWindow):
 
         self.ui.createmodel_button.setEnabled(True)
 
-        self.data_loaded = True
-        self.show_column_options(True)
         self.graph_widget.set_data(self.df, 'close') # closing price hard coded for the line graph
 
-    def show_column_options(self, show):
-        self.ui.cols_combobox.clear()
-        if show:
-            filtered_df = self.df.drop(columns=['date'], errors='ignore')
-            column_names = filtered_df.columns.tolist()
-            self.ui.cols_combobox.addItems(column_names)
 
     #
     # graph stuff
@@ -131,9 +119,6 @@ class MainWindow(QMainWindow):
     def on_arrow_button_clicked(self):
         self.graph_widget.goto_last()
 
-    def on_timewindow10_changed(self):
-        if self.df is not None:
-            self.graph_widget.set_params(10)
     def on_timewindow50_changed(self):
         if self.df is not None:
             self.graph_widget.set_params(50)
@@ -143,9 +128,6 @@ class MainWindow(QMainWindow):
     def on_timewindow500_changed(self):
         if self.df is not None:
             self.graph_widget.set_params(500)
-    def on_timewindow1000_changed(self):
-        if self.df is not None:
-            self.graph_widget.set_params(1000)
     def on_timewindowmax_changed(self):
         if self.df is not None:
             self.graph_widget.set_params('max')
@@ -155,14 +137,10 @@ class MainWindow(QMainWindow):
     # forecast model stuff
     #
 
-    # def on_cols_combobox_changed(self):
-    #     if self.ui.cols_combobox.count() != 0:
-    #         self.graph_widget.set_data(self.df, self.ui.cols_combobox.currentText())
-
     def on_createmodel_button_clicked(self):
         filtered_df = self.df.drop(columns=['date'], errors='ignore')
         column_names = filtered_df.columns.tolist()
-        target_variable = self.ui.cols_combobox.currentText()
+        target_variable = 'close' # TODOOOOOOOOOOOO hardcoded
 
         self.window = CreateModelWindow(column_names, target_variable)
         # for data recieved
