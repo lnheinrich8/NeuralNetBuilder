@@ -65,6 +65,7 @@ class MainWindow(QMainWindow):
 
         self.ui.createmodel_button.setEnabled(False)
         self.ui.forecast_button.setEnabled(False)
+        self.ui.clearmodel_button.setVisible(False)
 
         # adding the graph widget
         self.graph_widget = GraphWidget()
@@ -81,6 +82,7 @@ class MainWindow(QMainWindow):
         # model stuff
         self.ui.createmodel_button.clicked.connect(self.on_createmodel_button_clicked)
         self.ui.forecast_button.clicked.connect(self.on_forecast_button_clicked)
+        self.ui.clearmodel_button.clicked.connect(self.on_clearmodel_button_clicked)
 
         # graph stuff
         self.ui.candle_button.clicked.connect(self.on_candle_button_clicked)
@@ -148,11 +150,14 @@ class MainWindow(QMainWindow):
         self.window.show()
     def data_from_create_model(self, serialized_data):
         self.model_params = json.loads(serialized_data)
+        self.ui.forecast_progress_label.setVisible(True)
+        self.ui.forecast_progress_label.setText('Ready')
         self.ui.forecast_button.setEnabled(True)
 
     def on_forecast_button_clicked(self):
         # disable stuff while forecasting in progress
         self.enableb_forecast(False)
+        self.ui.forecast_progress_label.setText('Training...')
 
         layer_data = self.model_params['layer_widgets_dict']
         # create layer config and initialize dropout (dropout is in the layer_widgets_dict)
@@ -171,8 +176,6 @@ class MainWindow(QMainWindow):
         layers_config = mc.create_layer_config(layer_count, layer_neuron_list, layer_type_list, layer_return_list)
 
         # run the forecast in a separate thread
-        self.ui.forecast_progress_label.setVisible(True)
-
         self.forecast_worker = ForecastWorker(self.df, layers_config, self.model_params['target_variable'], self.model_params['training_cols'],
             self.model_params['forecast_period'], self.model_params['epochs'], self.model_params['step_future'], self.model_params['step_past'],
             dropout, self.model_params['optimizer'], self.model_params['loss'])
@@ -184,10 +187,12 @@ class MainWindow(QMainWindow):
     def enableb_forecast(self, bool):
         self.ui.createmodel_button.setEnabled(bool)
         self.ui.forecast_button.setEnabled(bool)
+        self.ui.clearmodel_button.setVisible(bool)
 
     def on_forecast_complete(self, result):
-        self.ui.forecast_progress_label.setVisible(False)
+        self.ui.forecast_progress_label.setText('Saved')
         self.enableb_forecast(True) # enable all the buttons here where the thread finishes
+        self.ui.createmodel_button.setEnabled(False)
 
         if isinstance(result, Exception):
             # handle the exception
@@ -202,6 +207,13 @@ class MainWindow(QMainWindow):
             result = result.iloc[1:]
             self.graph_widget.set_forecast_result(result)
 
+    def on_clearmodel_button_clicked(self):
+        self.ui.clearmodel_button.setVisible(False)
+        self.ui.forecast_progress_label.setVisible(False)
+        self.ui.createmodel_button.setEnabled(True)
+        self.ui.forecast_button.setEnabled(False)
+
+        self.graph_widget.clear_forecast()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

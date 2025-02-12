@@ -101,7 +101,7 @@
        <rect>
         <x>897</x>
         <y>152</y>
-        <width>79</width>
+        <width>80</width>
         <height>24</height>
        </rect>
       </property>
@@ -114,7 +114,7 @@
        <rect>
         <x>897</x>
         <y>175</y>
-        <width>79</width>
+        <width>80</width>
         <height>24</height>
        </rect>
       </property>
@@ -183,7 +183,7 @@
         <normaloff>icons/arrow_icon.png</normaloff>icons/arrow_icon.png</iconset>
       </property>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>30</x>
@@ -246,6 +246,19 @@
         </widget>
        </item>
       </layout>
+     </widget>
+     <widget class="QPushButton" name="clearmodel_button">
+      <property name="geometry">
+       <rect>
+        <x>897</x>
+        <y>220</y>
+        <width>80</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Clear Model</string>
+      </property>
      </widget>
     </widget>
     <widget class="QWidget" name="tab2">
