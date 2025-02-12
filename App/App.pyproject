@@ -8,6 +8,7 @@
         "uicode_CreateModelWindow.py",
         "uisource_DrawingWidget.py",
         "source_SequentialModel.py",
-        "uisource_GraphWidget.py"
+        "uisource_GraphWidget.py",
+        "source_Train.py"
     ]
 }

@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
 import sys
 import json
 import source_Misc as mc
+import source_Train as tr
 import source_Forecast as fc
 
 # Important:
@@ -21,15 +22,13 @@ from uisource_GraphWidget import GraphWidget
 
 # helper worker thread class to run the forecast function
 class ForecastWorker(QThread):
-    finished = Signal(object)
+    finished = Signal(object, object, object, object)
 
-    def __init__(self, df, layers_config, target_var, training_cols, forecast_period, epochs, step_future, step_past, dropout, optimizer, loss):
+    def __init__(self, df, layers_config, training_cols, epochs, step_future, step_past, dropout, optimizer, loss):
         super().__init__()
         self.df = df
         self.layers_config = layers_config
-        self.target_var = target_var
         self.training_cols = training_cols
-        self.forecast_period = forecast_period
         self.epochs = epochs
         self.step_future = step_future
         self.step_past = step_past
@@ -38,12 +37,16 @@ class ForecastWorker(QThread):
         self.loss = loss
 
     def run(self):
-        forecast_df = None
+        # forecast_df = None
         try:
-            forecast_df = fc.forecast(self.df, self.layers_config, self.target_var, training_cols=self.training_cols,
-                forecast_period=self.forecast_period, epochs=self.epochs, step_future=self.step_future, step_past=self.step_past,
-                dropout=self.dropout, optimizer=self.optimizer, loss=self.loss)
-            self.finished.emit(forecast_df)
+            # forecast_df = fc.forecast(self.df, self.layers_config, self.target_var, training_cols=self.training_cols,
+            #     forecast_period=self.forecast_period, epochs=self.epochs, step_future=self.step_future, step_past=self.step_past,
+            #     dropout=self.dropout, optimizer=self.optimizer, loss=self.loss)
+
+            model, scaler, trainX, cols = tr.train(self.df, self.layers_config, self.training_cols, self.epochs, self.step_future,
+                self.step_past, self.dropout, self.optimizer, self.loss)
+
+            self.finished.emit(model, scaler, trainX, cols)
         except Exception as e:
             self.finished.emit(e)
 
@@ -175,10 +178,8 @@ class MainWindow(QMainWindow):
         layer_count = len(layer_data) - 1 # not including the last dropout layer
         layers_config = mc.create_layer_config(layer_count, layer_neuron_list, layer_type_list, layer_return_list)
 
-        # run the forecast in a separate thread
-        self.forecast_worker = ForecastWorker(self.df, layers_config, self.model_params['target_variable'], self.model_params['training_cols'],
-            self.model_params['forecast_period'], self.model_params['epochs'], self.model_params['step_future'], self.model_params['step_past'],
-            dropout, self.model_params['optimizer'], self.model_params['loss'])
+        self.forecast_worker = ForecastWorker(self.df, layers_config, self.model_params['training_cols'], self.model_params['epochs'],
+            self.model_params['step_future'], self.model_params['step_past'], dropout, self.model_params['optimizer'], self.model_params['loss'])
 
         self.forecast_worker.finished.connect(self.on_forecast_complete)
         self.forecast_worker.start()
@@ -189,23 +190,22 @@ class MainWindow(QMainWindow):
         self.ui.forecast_button.setEnabled(bool)
         self.ui.clearmodel_button.setVisible(bool)
 
-    def on_forecast_complete(self, result):
+    def on_forecast_complete(self, model, scaler, trainX, cols):
         self.ui.forecast_progress_label.setText('Saved')
         self.enableb_forecast(True) # enable all the buttons here where the thread finishes
         self.ui.createmodel_button.setEnabled(False)
 
-        if isinstance(result, Exception):
-            # handle the exception
+        try: # TODOOOOOOOO need to seperate forecast and train function
+            forecast_df = fc.forecast(self.df, cols, model, scaler, trainX, 'close', forecast_period=5) # TODOOOOOOO some hardcoded test vals
+            result = forecast_df.iloc[1:]
+            self.graph_widget.set_forecast_result(result)
+        except Exception as e:
             error_dialog = QMessageBox()
             error_dialog.setIcon(QMessageBox.Critical)
             error_dialog.setWindowTitle("Forecast Error")
             error_dialog.setText("An error occurred while forecasting.")
-            print(result)
-            error_dialog.setInformativeText(str(result))  # show the exception message
+            error_dialog.setInformativeText(str(e))  # show the exception message
             error_dialog.exec()
-        else:
-            result = result.iloc[1:]
-            self.graph_widget.set_forecast_result(result)
 
     def on_clearmodel_button_clicked(self):
         self.ui.clearmodel_button.setVisible(False)
