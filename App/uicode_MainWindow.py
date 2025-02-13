@@ -22,7 +22,7 @@ from uisource_GraphWidget import GraphWidget
 
 # helper worker thread class to run the forecast function
 class ForecastWorker(QThread):
-    finished = Signal(object, object, object, object)
+    finished = Signal(object, object, object)
 
     def __init__(self, df, layers_config, training_cols, epochs, step_future, step_past, dropout, optimizer, loss):
         super().__init__()
@@ -37,16 +37,11 @@ class ForecastWorker(QThread):
         self.loss = loss
 
     def run(self):
-        # forecast_df = None
         try:
-            # forecast_df = fc.forecast(self.df, self.layers_config, self.target_var, training_cols=self.training_cols,
-            #     forecast_period=self.forecast_period, epochs=self.epochs, step_future=self.step_future, step_past=self.step_past,
-            #     dropout=self.dropout, optimizer=self.optimizer, loss=self.loss)
-
-            model, scaler, trainX, cols = tr.train(self.df, self.layers_config, self.training_cols, self.epochs, self.step_future,
+            model, scaler, cols = tr.train(self.df, self.layers_config, self.training_cols, self.epochs, self.step_future,
                 self.step_past, self.dropout, self.optimizer, self.loss)
 
-            self.finished.emit(model, scaler, trainX, cols)
+            self.finished.emit(model, scaler, cols)
         except Exception as e:
             self.finished.emit(e)
 
@@ -59,6 +54,12 @@ class MainWindow(QMainWindow):
         self.df = None
         self.model_params = None
 
+        # saved model
+        self.model = None
+        self.scaler = None
+        self.cols = None
+        self.trainX = None
+
         # setup combobox
         for ticker in mc.list_sp500_tickers():
             self.ui.ticker_combobox.addItem(ticker, ticker)
@@ -67,6 +68,7 @@ class MainWindow(QMainWindow):
         self.ui.forecast_progress_label.setVisible(False)
 
         self.ui.createmodel_button.setEnabled(False)
+        self.ui.train_button.setEnabled(False)
         self.ui.forecast_button.setEnabled(False)
         self.ui.clearmodel_button.setVisible(False)
 
@@ -84,6 +86,7 @@ class MainWindow(QMainWindow):
 
         # model stuff
         self.ui.createmodel_button.clicked.connect(self.on_createmodel_button_clicked)
+        self.ui.train_button.clicked.connect(self.on_train_button_clicked)
         self.ui.forecast_button.clicked.connect(self.on_forecast_button_clicked)
         self.ui.clearmodel_button.clicked.connect(self.on_clearmodel_button_clicked)
 
@@ -97,7 +100,6 @@ class MainWindow(QMainWindow):
         self.ui.window500_button.clicked.connect(self.on_timewindow500_changed)
         self.ui.windowmax_button.clicked.connect(self.on_timewindowmax_changed)
 
-
     # ---- SLOT FUNCTIONS ----
 
     #
@@ -107,7 +109,8 @@ class MainWindow(QMainWindow):
         ticker = self.ui.ticker_combobox.currentText()
         self.df = mc.get_data(ticker)
 
-        self.ui.createmodel_button.setEnabled(True)
+        if self.model is None:
+            self.ui.createmodel_button.setEnabled(True)
 
         self.graph_widget.set_data(self.df, 'close') # closing price hard coded for the line graph
 
@@ -155,11 +158,13 @@ class MainWindow(QMainWindow):
         self.model_params = json.loads(serialized_data)
         self.ui.forecast_progress_label.setVisible(True)
         self.ui.forecast_progress_label.setText('Ready')
-        self.ui.forecast_button.setEnabled(True)
+        self.ui.train_button.setEnabled(True)
 
-    def on_forecast_button_clicked(self):
+    def on_train_button_clicked(self):
         # disable stuff while forecasting in progress
-        self.enableb_forecast(False)
+        self.ui.createmodel_button.setEnabled(False)
+        self.ui.train_button.setEnabled(False)
+        self.ui.clearmodel_button.setVisible(False)
         self.ui.forecast_progress_label.setText('Training...')
 
         layer_data = self.model_params['layer_widgets_dict']
@@ -181,22 +186,28 @@ class MainWindow(QMainWindow):
         self.forecast_worker = ForecastWorker(self.df, layers_config, self.model_params['training_cols'], self.model_params['epochs'],
             self.model_params['step_future'], self.model_params['step_past'], dropout, self.model_params['optimizer'], self.model_params['loss'])
 
-        self.forecast_worker.finished.connect(self.on_forecast_complete)
+        self.forecast_worker.finished.connect(self.on_training_complete)
         self.forecast_worker.start()
 
-    # this might grow with more functions later in dev
-    def enableb_forecast(self, bool):
-        self.ui.createmodel_button.setEnabled(bool)
-        self.ui.forecast_button.setEnabled(bool)
-        self.ui.clearmodel_button.setVisible(bool)
-
-    def on_forecast_complete(self, model, scaler, trainX, cols):
+    def on_training_complete(self, model, scaler, cols):
         self.ui.forecast_progress_label.setText('Saved')
-        self.enableb_forecast(True) # enable all the buttons here where the thread finishes
+        self.ui.clearmodel_button.setVisible(True)
+        self.ui.forecast_button.setEnabled(True)
+        self.ui.train_button.setEnabled(False)
         self.ui.createmodel_button.setEnabled(False)
 
-        try: # TODOOOOOOOO need to seperate forecast and train function
-            forecast_df = fc.forecast(self.df, cols, model, scaler, trainX, 'close', forecast_period=5) # TODOOOOOOO some hardcoded test vals
+        self.model = model
+        self.scaler = scaler
+        self.cols = cols
+
+    def on_forecast_button_clicked(self):
+        self.graph_widget.clear_forecast()
+
+        print(self.scaler)
+        try:
+            forecast_df = fc.forecast(self.df, self.cols, self.model, self.scaler, self.model_params['target_variable'],
+                self.model_params['forecast_period'], self.model_params['step_future'], self.model_params['step_past'])
+
             result = forecast_df.iloc[1:]
             self.graph_widget.set_forecast_result(result)
         except Exception as e:
@@ -210,8 +221,12 @@ class MainWindow(QMainWindow):
     def on_clearmodel_button_clicked(self):
         self.ui.clearmodel_button.setVisible(False)
         self.ui.forecast_progress_label.setVisible(False)
-        self.ui.createmodel_button.setEnabled(True)
         self.ui.forecast_button.setEnabled(False)
+        self.ui.createmodel_button.setEnabled(True)
+
+        self.model = None
+        self.scaler = None
+        self.cols = None
 
         self.graph_widget.clear_forecast()
 

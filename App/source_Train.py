@@ -36,4 +36,5 @@ def train(df, layers_config, training_cols=["open", "high", "low", "close", "vol
     # history object contains information about the training process like loss and validation loss (unused right now)
     history = model.fit(trainX, trainY, epochs=epochs, batch_size=16, validation_split=0.1, verbose=1)
 
-    return model, scaler, trainX, cols
+    return model, scaler, cols
+
