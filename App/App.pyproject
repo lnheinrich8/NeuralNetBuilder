@@ -9,6 +9,7 @@
         "uisource_DrawingWidget.py",
         "source_SequentialModel.py",
         "uisource_GraphWidget.py",
-        "source_Train.py"
+        "source_Train.py",
+        "source_Indicators.py"
     ]
 }

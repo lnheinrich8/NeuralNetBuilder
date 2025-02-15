@@ -34,9 +34,7 @@ class GraphWidget(QWidget):
 
     def set_data(self, df, graph_variable):
         self.forecast_len = None
-        # self.df = None
         self.df = df
-        # self.graph_variable = None
         self.graph_variable = graph_variable
 
         self.visible_end = len(df)
@@ -47,7 +45,7 @@ class GraphWidget(QWidget):
         self.draw_linegraph = line
         self.update()
 
-    def set_forecast_result(self, result_df): # TODOOOOOOOOOOOOOO change to visible_end
+    def set_forecast_result(self, result_df):
         self.df = pd.concat([self.df, result_df], ignore_index=True)
         self.forecast_len = len(result_df)
         self.visible_end = len(self.df)
@@ -60,7 +58,7 @@ class GraphWidget(QWidget):
 
         self.update()
 
-    def set_params(self, window): # TODOOOOOOOOOOOO this totally needs testing bruh
+    def set_params(self, window):
         if window != 'max':
             self.visible_window = window
         else:
@@ -165,8 +163,7 @@ class GraphWidget(QWidget):
         data_max = visible_data[['high']].max().values[0]
         data_range = data_max - data_min
 
-        # avoid division by zero
-        y_scale = (rect.height() - 2 * self.margin) / data_range if data_range != 0 else 0
+        y_scale = (rect.height() - 2 * self.margin) / data_range
 
         # candle width
         candle_width = max(5, (rect.width() - 2 * self.margin) / (len(visible_data) * 2))
@@ -231,6 +228,8 @@ class GraphWidget(QWidget):
                 painter.setBrush(candle_color)
                 painter.drawRect(int(x - candle_width / 2), int(min(open_y, close_y)),
                                  int(candle_width), int(abs(open_y - close_y)))
+
+
 
 
     def draw_crosshair(self, painter):
