@@ -1,7 +1,7 @@
 import pandas as pd
 
-def rsi(ohlc: pd.DataFrame, period: int = 14) -> pd.Series:
-    delta = ohlc["Close"].diff()
+def rsi(ohlc, period = 14):
+    delta = ohlc["close"].diff()
     up, down = delta.copy(), delta.copy()
     up[up < 0] = 0
     down[down > 0] = 0
@@ -9,3 +9,6 @@ def rsi(ohlc: pd.DataFrame, period: int = 14) -> pd.Series:
     _loss = down.abs().ewm(com=(period - 1), min_periods=period).mean()
     RS = _gain / _loss
     return pd.Series(100 - (100 / (1 + RS)), name="RSI")
+
+def sma(ohlc, period = 50):
+    return pd.Series(ohlc["close"].rolling(window=period, min_periods=period).mean(), name="SMA")

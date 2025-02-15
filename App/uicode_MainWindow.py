@@ -11,17 +11,14 @@ import json
 import source_Misc as mc
 import source_Train as tr
 import source_Forecast as fc
+import source_Indicators as ic
 
-# Important:
-# You need to run the following command to generate the ui_form.py file
-#     pyside6-uic form.ui -o ui_form.py, or
-#     pyside2-uic form.ui -o ui_form.py
 from ui_form_main import Ui_MainWindow
 from uicode_CreateModelWindow import CreateModelWindow
 from uisource_GraphWidget import GraphWidget
 
 # helper worker thread class to run the forecast function
-class ForecastWorker(QThread):
+class TrainingThread(QThread):
     finished = Signal(object, object, object)
 
     def __init__(self, df, layers_config, training_cols, epochs, step_future, step_past, dropout, optimizer, loss):
@@ -100,6 +97,8 @@ class MainWindow(QMainWindow):
         self.ui.window500_button.clicked.connect(self.on_timewindow500_changed)
         self.ui.windowmax_button.clicked.connect(self.on_timewindowmax_changed)
 
+        self.ui.indicators_button.clicked.connect(self.on_indicators_button_clicked)
+
     # ---- SLOT FUNCTIONS ----
 
     #
@@ -129,16 +128,25 @@ class MainWindow(QMainWindow):
 
     def on_timewindow50_changed(self):
         if self.df is not None:
-            self.graph_widget.set_params(50)
+            self.graph_widget.change_window(50)
     def on_timewindow100_changed(self):
         if self.df is not None:
-            self.graph_widget.set_params(100)
+            self.graph_widget.change_window(100)
     def on_timewindow500_changed(self):
         if self.df is not None:
-            self.graph_widget.set_params(500)
+            self.graph_widget.change_window(500)
     def on_timewindowmax_changed(self):
         if self.df is not None:
-            self.graph_widget.set_params('max')
+            self.graph_widget.change_window('max')
+
+    def on_indicators_button_clicked(self):
+        if self.df is not None:
+            sma = ic.sma(self.df)
+
+            self.graph_widget.add_indicator('sma', sma)
+
+            # TODOOOOOOOOOOOO make this dynamic g
+
 
 
     #
@@ -183,11 +191,11 @@ class MainWindow(QMainWindow):
         layer_count = len(layer_data) - 1 # not including the last dropout layer
         layers_config = mc.create_layer_config(layer_count, layer_neuron_list, layer_type_list, layer_return_list)
 
-        self.forecast_worker = ForecastWorker(self.df, layers_config, self.model_params['training_cols'], self.model_params['epochs'],
+        self.training_thread = TrainingThread(self.df, layers_config, self.model_params['training_cols'], self.model_params['epochs'],
             self.model_params['step_future'], self.model_params['step_past'], dropout, self.model_params['optimizer'], self.model_params['loss'])
 
-        self.forecast_worker.finished.connect(self.on_training_complete)
-        self.forecast_worker.start()
+        self.training_thread.finished.connect(self.on_training_complete)
+        self.training_thread.start()
 
     def on_training_complete(self, model, scaler, cols):
         self.ui.forecast_progress_label.setText('Saved')

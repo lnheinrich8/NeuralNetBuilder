@@ -86,8 +86,8 @@
      <widget class="QLabel" name="forecast_progress_label">
       <property name="geometry">
        <rect>
-        <x>900</x>
-        <y>200</y>
+        <x>905</x>
+        <y>583</y>
         <width>70</width>
         <height>16</height>
        </rect>
@@ -100,7 +100,7 @@
       <property name="geometry">
        <rect>
         <x>900</x>
-        <y>127</y>
+        <y>510</y>
         <width>80</width>
         <height>24</height>
        </rect>
@@ -113,7 +113,7 @@
       <property name="geometry">
        <rect>
         <x>900</x>
-        <y>150</y>
+        <y>533</y>
         <width>80</width>
         <height>24</height>
        </rect>
@@ -250,8 +250,8 @@
      <widget class="QPushButton" name="clearmodel_button">
       <property name="geometry">
        <rect>
-        <x>897</x>
-        <y>220</y>
+        <x>900</x>
+        <y>603</y>
         <width>80</width>
         <height>24</height>
        </rect>
@@ -264,13 +264,26 @@
       <property name="geometry">
        <rect>
         <x>900</x>
-        <y>173</y>
+        <y>556</y>
         <width>80</width>
         <height>24</height>
        </rect>
       </property>
       <property name="text">
        <string>Forecast</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="indicators_button">
+      <property name="geometry">
+       <rect>
+        <x>900</x>
+        <y>140</y>
+        <width>80</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Indicators</string>
       </property>
      </widget>
     </widget>

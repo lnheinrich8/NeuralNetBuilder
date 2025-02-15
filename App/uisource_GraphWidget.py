@@ -8,12 +8,15 @@ class GraphWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        # main data stuff
         self.df = None
-
-        self.forecast_len = None
-
         self.graph_variable = None
         self.draw_linegraph = False
+
+        # dictionary of indicators
+        self.indicators = {}
+
+        self.forecast_len = None
 
         self.margin = 10
         self.line_color = QColor(242, 7, 74)
@@ -36,12 +39,16 @@ class GraphWidget(QWidget):
         self.forecast_len = None
         self.df = df
         self.graph_variable = graph_variable
-
         self.visible_end = len(df)
         self.update()
-
-    # line or candle
-    def set_lorc(self, line):
+    def change_window(self, window):
+        if window != 'max':
+            self.visible_window = window
+        else:
+            self.visible_window = len(self.df)
+            self.visible_end = len(self.df)
+        self.update()
+    def set_lorc(self, line): # line or candle
         self.draw_linegraph = line
         self.update()
 
@@ -51,26 +58,25 @@ class GraphWidget(QWidget):
         self.visible_end = len(self.df)
         self.update()
 
+    def add_indicator(self, indicator_key, indicator_df):
+        self.indicators[indicator_key] = indicator_df
+        self.update()
+    def remove_indicator(self, indicator_key): # needs testing
+        self.indicators.pop(indicator_key, None)
+        self.update()
+    def clear_indicators(self): # needs testing
+        self.indicators.clear()
+        self.update()
+
     def clear_forecast(self):
         if self.forecast_len is not None:
             self.df = self.df.iloc[:-self.forecast_len]
             self.forecast_len = None
-
         self.update()
-
-    def set_params(self, window):
-        if window != 'max':
-            self.visible_window = window
-        else:
-            self.visible_window = len(self.df)
-            self.visible_end = len(self.df)
-        self.update()
-
     def clear_graph(self):
         self.df = None
         self.forecast_len = None
         self.update()
-
     def goto_last(self):
         self.visible_end = len(self.df)
         self.update()
@@ -82,7 +88,7 @@ class GraphWidget(QWidget):
 
         # draw background
         painter.fillRect(self.rect(), self.background_color)
-        # draw axes
+        # draw background lines
         self.draw_sumlines(painter)
         # draw graph
         painter.setRenderHint(QPainter.Antialiasing, True)
@@ -91,6 +97,9 @@ class GraphWidget(QWidget):
                 self.draw_line(painter, self.df)
             else:
                 self.draw_candles(painter, self.df)
+        # draw indicators
+        if len(self.indicators) != 0:
+            self.draw_indicators(painter, self.indicators)
         # draw crosshair
         painter.setRenderHint(QPainter.Antialiasing, False)
         if self.mouse_pos is not None:
@@ -118,10 +127,9 @@ class GraphWidget(QWidget):
 
         column_data = pd.to_numeric(visible_data[self.graph_variable])
 
-        # normalize data to center it around the middle line
-        data_min = column_data.min()
-        data_max = column_data.max()
+        data_min, data_max = self.get_global_minmax()
         data_range = data_max - data_min
+
         midline_y = rect.height() / 2  # y-coordinate for the middle line
 
         # scale data so it fits in the vertical range of the widget
@@ -132,7 +140,7 @@ class GraphWidget(QWidget):
 
         points = []
         for i, value in enumerate(column_data):
-            x = self.margin + i * ((rect.width() - 2 * self.margin) / (len(visible_data) - 1))
+            x = self.margin + i * ((rect.width() - 2 * self.margin) / (self.visible_window - 1))
             y = midline_y - (value - (data_min + data_range / 2)) * y_scale
             points.append((x, y))
 
@@ -158,22 +166,20 @@ class GraphWidget(QWidget):
         if visible_data.empty:
             return
 
-        # normalize data
-        data_min = visible_data[['low']].min().values[0]
-        data_max = visible_data[['high']].max().values[0]
+        data_min, data_max = self.get_global_minmax()
         data_range = data_max - data_min
 
         y_scale = (rect.height() - 2 * self.margin) / data_range
 
         # candle width
-        candle_width = max(5, (rect.width() - 2 * self.margin) / (len(visible_data) * 2))
+        candle_width = max(5, (rect.width() - 2 * self.margin) / (self.visible_window * 2))
 
         if self.forecast_len is not None:
             points = []
-            forecast_start_index = len(visible_data) - self.forecast_len  # forecast start
+            forecast_start_index = self.visible_window - self.forecast_len  # forecast start
 
             for i, (index, row) in enumerate(visible_data.iterrows()):
-                x = self.margin + i * ((rect.width() - 2 * self.margin) / (len(visible_data) - 1))
+                x = self.margin + i * ((rect.width() - 2 * self.margin) / (self.visible_window - 1))
                 close_y = rect.height() - self.margin - (row['close'] - data_min) * y_scale
 
                 if i < forecast_start_index:
@@ -209,7 +215,7 @@ class GraphWidget(QWidget):
         else:
             for i, (index, row) in enumerate(visible_data.iterrows()):
 
-                x = self.margin + i * ((rect.width() - 2 * self.margin) / (len(visible_data) - 1))
+                x = self.margin + i * ((rect.width() - 2 * self.margin) / (self.visible_window - 1))
 
                 high_y = rect.height() - self.margin - (row['high'] - data_min) * y_scale
                 low_y = rect.height() - self.margin - (row['low'] - data_min) * y_scale
@@ -229,6 +235,57 @@ class GraphWidget(QWidget):
                 painter.drawRect(int(x - candle_width / 2), int(min(open_y, close_y)),
                                  int(candle_width), int(abs(open_y - close_y)))
 
+
+    def draw_indicators(self, painter, indicators):
+        painter.setPen(QPen(self.forecast_line_color, 2)) # TODOOOOOOOOOO change color based on set indicator color
+        rect = self.rect()
+
+        data_min, data_max = self.get_global_minmax()
+        data_range = data_max - data_min
+
+        if data_range == 0:
+            return
+
+        y_scale = (rect.height() - 2 * self.margin) / data_range
+
+        for key, df in indicators.items():
+            visible_data = df.iloc[self.visible_end - self.visible_window:self.visible_end]
+
+            column_data = pd.to_numeric(visible_data)
+
+            points = []
+            for i, value in enumerate(column_data):
+                x = self.margin + i * ((rect.width() - 2 * self.margin) / (self.visible_window - 1))
+
+                y = rect.height() - self.margin - (value - data_min) * y_scale
+                points.append((x, y))
+
+            # draw indicator line
+            for i in range(len(points) - 1):
+                painter.drawLine(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1])
+
+
+    def get_global_minmax(self):
+        visible_price_data = self.df.iloc[self.visible_end - self.visible_window:self.visible_end]
+
+        # min/max for the price data
+        price_min = visible_price_data[['low']].min().values[0]
+        price_max = visible_price_data[['high']].max().values[0]
+
+        # min/max for indicators
+        indicator_min, indicator_max = float('inf'), float('-inf')
+        for key, ind_df in self.indicators.items():
+            visible_data = ind_df.iloc[self.visible_end - self.visible_window:self.visible_end]
+            if visible_data.empty:
+                continue
+            col_data = pd.to_numeric(visible_data)
+            indicator_min = min(indicator_min, col_data.min())
+            indicator_max = max(indicator_max, col_data.max())
+
+        global_min = min(price_min, indicator_min)
+        global_max = max(price_max, indicator_max)
+
+        return global_min, global_max
 
 
 
