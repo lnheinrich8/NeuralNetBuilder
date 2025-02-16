@@ -14,7 +14,9 @@ import source_Forecast as fc
 import source_Indicators as ic
 
 from ui_form_main import Ui_MainWindow
+
 from uicode_CreateModelWindow import CreateModelWindow
+from uicode_IndicatorWindow import IndicatorWindow
 from uisource_GraphWidget import GraphWidget
 
 # helper worker thread class to run the forecast function
@@ -140,13 +142,12 @@ class MainWindow(QMainWindow):
             self.graph_widget.change_window('max')
 
     def on_indicators_button_clicked(self):
-        if self.df is not None:
-            sma = ic.sma(self.df)
-
-            self.graph_widget.add_indicator('sma', sma)
-
-            # TODOOOOOOOOOOOO make this dynamic g
-
+        self.window = IndicatorWindow()
+        # for data recieved
+        self.window.data_submitted.connect(self.data_from_indicators)
+        self.window.show()
+    def data_from_indicators(self, indicator_data):
+        print(indicator_data)
 
 
     #
@@ -162,8 +163,9 @@ class MainWindow(QMainWindow):
         # for data recieved
         self.window.data_submitted.connect(self.data_from_create_model)
         self.window.show()
-    def data_from_create_model(self, serialized_data):
-        self.model_params = json.loads(serialized_data)
+    def data_from_create_model(self, data):
+        self.model_params = data
+
         self.ui.forecast_progress_label.setVisible(True)
         self.ui.forecast_progress_label.setText('Ready')
         self.ui.train_button.setEnabled(True)

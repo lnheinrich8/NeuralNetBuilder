@@ -11,14 +11,13 @@ from PySide6.QtWidgets import (
     QListWidget
 )
 
-import json
-
 from ui_form_createmodel import Ui_CreateModel
 from uisource_DrawingWidget import DrawingWidget
 
 class CreateModelWindow(QMainWindow):
 
-    data_submitted = Signal(str)
+    # data_submitted = Signal(str)
+    data_submitted = Signal(object)
 
     def __init__(self, column_names, target_variable, parent=None):
         super().__init__(parent)
@@ -245,22 +244,10 @@ class CreateModelWindow(QMainWindow):
                     layer['rseq'] = False
 
     def on_setmodel_button_clicked(self):
+
         self.add_return_seq()
 
-        step_future = self.ui.stepfuture_spinbox.value()
-        step_past = self.ui.steppast_spinbox.value()
-        forecast_period = self.ui.forecastperiod_spinbox.value() + 1 # +1 because first forecasted data is the same as ending trainging data
-        epochs = self.ui.epochs_spinbox.value()
-        optimizer = self.ui.optimizer_combobox.currentText()
-        loss = self.ui.loss_combobox.currentText()
-        target_variable = self.target_variable
-        trainingcols = []
-        for row in range(self.ui.trainingcols_listwidget.count()):
-            item = self.ui.trainingcols_listwidget.item(row)
-            if item.isSelected():
-                trainingcols.append(item.text())
-
-        serialized_layer_widgets_dict = []
+        new_layer_dict = []
         for layer in self.layer_widgets_dict:
             layer_dict = {}
             for key, val in layer.items():
@@ -270,22 +257,25 @@ class CreateModelWindow(QMainWindow):
                     layer_dict[key] = val.currentText()
                 else:
                     layer_dict[key] = val
-            serialized_layer_widgets_dict.append(layer_dict)
-        serialized_layer_widgets_dict = json.dumps(serialized_layer_widgets_dict)
+            new_layer_dict.append(layer_dict)
+
+        trainingcols = []
+        for row in range(self.ui.trainingcols_listwidget.count()):
+            item = self.ui.trainingcols_listwidget.item(row)
+            if item.isSelected():
+                trainingcols.append(item.text())
 
         model_data = {
-            "layer_widgets_dict": json.loads(serialized_layer_widgets_dict),
-            "step_future": step_future,
-            "step_past": step_past,
-            "forecast_period": forecast_period,
-            "epochs": epochs,
-            "optimizer": optimizer,
-            "loss": loss,
-            "target_variable": target_variable,
+            "layer_widgets_dict": new_layer_dict,
+            "step_future": self.ui.stepfuture_spinbox.value(),
+            "step_past": self.ui.steppast_spinbox.value(),
+            "forecast_period": self.ui.forecastperiod_spinbox.value() + 1,
+            "epochs": self.ui.epochs_spinbox.value(),
+            "optimizer": self.ui.optimizer_combobox.currentText(),
+            "loss": self.ui.loss_combobox.currentText(),
+            "target_variable": self.target_variable,
             "training_cols": trainingcols
         }
 
-        serialized_data = json.dumps(model_data, indent=4)
-
-        self.data_submitted.emit(serialized_data)
+        self.data_submitted.emit(model_data)
         self.close()

@@ -10,6 +10,8 @@
         "source_SequentialModel.py",
         "uisource_GraphWidget.py",
         "source_Train.py",
-        "source_Indicators.py"
+        "source_Indicators.py",
+        "uicode_IndicatorWindow.py",
+        "form_indicator.ui"
     ]
 }
