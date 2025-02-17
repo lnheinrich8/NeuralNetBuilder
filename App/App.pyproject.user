@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 13.0.0, 2025-02-15T23:08:10. -->
+<!-- Written by QtCreator 13.0.0, 2025-02-16T21:26:36. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -217,7 +217,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">uicode_IndicatorWindow.py</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">PythonEditor.RunConfiguration.C:/Users/lnhei/OneDrive/Desktop/personal_dev/QTApp_personaldev/TradingApp/App/uicode_IndicatorWindow.py</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">C:/Users/lnhei/OneDrive/Desktop/personal_dev/QTApp_personaldev/TradingApp/App/uicode_IndicatorWindow.py</value>
-    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">false</value>
+    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">true</value>
     <value type="QString" key="PythonEditor.RunConfiguation.Script">C:\Users\lnhei\OneDrive\Desktop\personal_dev\QTApp_personaldev\TradingApp\App\uicode_IndicatorWindow.py</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>

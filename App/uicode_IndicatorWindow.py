@@ -41,15 +41,10 @@ class ClickableFrame(QFrame):
 class IndicatorWindow(QMainWindow):
     data_submitted = Signal(object)
 
-    def __init__(self, df, parent=None):
+    def __init__(self, current_indicators, parent=None):
         super().__init__(parent)
         self.ui = Ui_Indicator()
         self.ui.setupUi(self)
-
-        self.df = df
-
-        # indicator function dictionary
-        self.indicator_functions = self.initialize_indicator_function_dictiary()
 
         # initialize available indicators
         self.available_indicators_container = QWidget()
@@ -59,18 +54,22 @@ class IndicatorWindow(QMainWindow):
         self.ui.available_indicators_area.setWidgetResizable(True)
         self.available_indicators_layout.setAlignment(Qt.AlignTop)
 
-        for indicator_name in self.indicator_functions.keys():
+        for indicator_name in ic.get_indicator_list():
             clickable_item = ClickableFrame(indicator_name, False, self)
             self.available_indicators_layout.addWidget(clickable_item)
 
 
-        # initialize current indicators area
+        # initialize current indicators
         self.current_indicators_container = QWidget()
         self.current_indicators_layout = QVBoxLayout(self.current_indicators_container)
         self.current_indicators_container.setLayout(self.current_indicators_layout)
         self.ui.current_indicators_area.setWidget(self.current_indicators_container)
         self.ui.current_indicators_area.setWidgetResizable(True)
         self.current_indicators_layout.setAlignment(Qt.AlignTop)
+
+        for key, params in current_indicators.items():
+            clickable_item = ClickableFrame(key, True, self)
+            self.current_indicators_layout.addWidget(clickable_item)
 
 
         # ---- CONNECT SIGNALS ----
@@ -88,19 +87,9 @@ class IndicatorWindow(QMainWindow):
         for i in range(self.current_indicators_layout.count()):
             widget = self.current_indicators_layout.itemAt(i).widget()
             ind_text = widget.label.text()
-            function = self.indicator_functions[ind_text]
-            indicator_data[ind_text] = function(self.df)
+            params = "shi idk" # TODOOOOOOOO need to implement in ui
+            indicator_data[ind_text] = params
 
         self.data_submitted.emit(indicator_data)
         self.close()
-
-    # this will grow with every addition of an indicator
-    def initialize_indicator_function_dictiary(self):
-
-        function_dictionary = {
-            'SMA': ic.sma,
-            'EMA': ic.ema
-        }
-
-        return function_dictionary
 

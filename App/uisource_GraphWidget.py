@@ -40,6 +40,7 @@ class GraphWidget(QWidget):
         self.df = df
         self.graph_variable = graph_variable
         self.visible_end = len(df)
+        self.indicators.clear()
         self.update()
     def change_window(self, window):
         if window != 'max':

@@ -15,3 +15,19 @@ def sma(ohlc, period = 50):
 
 def ema(ohlc, period = 10):
     return pd.Series(ohlc["close"].ewm(span=period, adjust=False).mean(), name="EMA")
+
+
+# this will grow with every addition of an indicator
+def get_indicator_function_dictiary():
+
+    function_dictionary = {
+        'SMA': sma,
+        'EMA': ema
+    }
+
+    return function_dictionary
+
+# this will grow with every addition of an indicator
+def get_indicator_list():
+    indicator_list = ['SMA', 'EMA']
+    return indicator_list

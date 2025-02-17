@@ -10,6 +10,7 @@ import sys
 import source_Misc as mc
 import source_Train as tr
 import source_Forecast as fc
+import source_Indicators as ic
 
 from ui_form_main import Ui_MainWindow
 
@@ -49,13 +50,16 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.df = None
+
+        self.current_indicators = {}
+        self.indicator_functions = ic.get_indicator_function_dictiary()
+
         self.model_params = None
 
         # saved model
         self.model = None
         self.scaler = None
         self.cols = None
-        self.trainX = None
 
         # setup combobox
         for ticker in mc.list_sp500_tickers():
@@ -115,6 +119,11 @@ class MainWindow(QMainWindow):
 
         self.graph_widget.set_data(self.df, 'close') # closing price hard coded for the line graph
 
+        for key, params in self.current_indicators.items():
+            function = self.indicator_functions[key]
+            data = function(self.df)
+            self.graph_widget.add_indicator(key, data)
+
 
     #
     # graph stuff
@@ -142,15 +151,18 @@ class MainWindow(QMainWindow):
             self.graph_widget.change_window('max')
 
     def on_indicators_button_clicked(self):
-        self.window = IndicatorWindow(self.df)
-        # for data recieved
-        self.window.data_submitted.connect(self.data_from_indicators)
+        self.window = IndicatorWindow(self.current_indicators)
+        self.window.data_submitted.connect(self.data_from_indicators) # for data recieved
         self.window.show()
-    def data_from_indicators(self, indicator_data):
-        print(indicator_data)
-        for key, item in indicator_data.items():
-            self.graph_widget.add_indicator(key, item) # TODOOOOO need colors and params from IndicatorWindow
 
+    def data_from_indicators(self, indicator_data):
+        self.graph_widget.clear_indicators()
+        self.current_indicators = indicator_data
+
+        for key, params in indicator_data.items():
+            function = self.indicator_functions[key]
+            data = function(self.df)
+            self.graph_widget.add_indicator(key, data) # TODOOOOO need params from IndicatorWindow
 
     #
     # forecast model stuff
@@ -215,7 +227,6 @@ class MainWindow(QMainWindow):
     def on_forecast_button_clicked(self):
         self.graph_widget.clear_forecast()
 
-        print(self.scaler)
         try:
             forecast_df = fc.forecast(self.df, self.cols, self.model, self.scaler, self.model_params['target_variable'],
                 self.model_params['forecast_period'], self.model_params['step_future'], self.model_params['step_past'])
