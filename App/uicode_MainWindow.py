@@ -7,11 +7,9 @@ from PySide6.QtWidgets import (
 )
 
 import sys
-import json
 import source_Misc as mc
 import source_Train as tr
 import source_Forecast as fc
-import source_Indicators as ic
 
 from ui_form_main import Ui_MainWindow
 
@@ -64,8 +62,9 @@ class MainWindow(QMainWindow):
             self.ui.ticker_combobox.addItem(ticker, ticker)
         self.ui.ticker_combobox.setCurrentIndex(-1)
 
-        self.ui.forecast_progress_label.setVisible(False)
+        self.ui.indicators_button.setEnabled(False)
 
+        self.ui.forecast_progress_label.setVisible(False)
         self.ui.createmodel_button.setEnabled(False)
         self.ui.train_button.setEnabled(False)
         self.ui.forecast_button.setEnabled(False)
@@ -110,6 +109,7 @@ class MainWindow(QMainWindow):
         ticker = self.ui.ticker_combobox.currentText()
         self.df = mc.get_data(ticker)
 
+        self.ui.indicators_button.setEnabled(True)
         if self.model is None:
             self.ui.createmodel_button.setEnabled(True)
 
@@ -142,12 +142,14 @@ class MainWindow(QMainWindow):
             self.graph_widget.change_window('max')
 
     def on_indicators_button_clicked(self):
-        self.window = IndicatorWindow()
+        self.window = IndicatorWindow(self.df)
         # for data recieved
         self.window.data_submitted.connect(self.data_from_indicators)
         self.window.show()
     def data_from_indicators(self, indicator_data):
         print(indicator_data)
+        for key, item in indicator_data.items():
+            self.graph_widget.add_indicator(key, item) # TODOOOOO need colors and params from IndicatorWindow
 
 
     #

@@ -12,3 +12,6 @@ def rsi(ohlc, period = 14):
 
 def sma(ohlc, period = 50):
     return pd.Series(ohlc["close"].rolling(window=period, min_periods=period).mean(), name="SMA")
+
+def ema(ohlc, period = 10):
+    return pd.Series(ohlc["close"].ewm(span=period, adjust=False).mean(), name="EMA")
