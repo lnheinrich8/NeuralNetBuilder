@@ -5,9 +5,12 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QLabel,
     QHBoxLayout,
-    QFrame
+    QFrame,
+    QPushButton,
+    QColorDialog
 )
 
+import inspect
 import source_Indicators as ic
 
 from ui_form_indicator import Ui_Indicator
@@ -31,8 +34,8 @@ class ClickableFrame(QFrame):
 
     def mouseDoubleClickEvent(self, event):
         if self.incurrent:
-            return
-            # TODOOOOO show properties
+            indicator_name = self.label.text()
+            self.parent_window.show_properties(indicator_name)
         else:
             indicator_name = self.label.text()
             self.parent_window.add_indicator_to_current(indicator_name)
@@ -45,6 +48,8 @@ class IndicatorWindow(QMainWindow):
         super().__init__(parent)
         self.ui = Ui_Indicator()
         self.ui.setupUi(self)
+
+        self.function_dict = ic.get_indicator_function_dict()
 
         # initialize available indicators
         self.available_indicators_container = QWidget()
@@ -72,6 +77,15 @@ class IndicatorWindow(QMainWindow):
             self.current_indicators_layout.addWidget(clickable_item)
 
 
+        # initialize properties
+        self.properties_container = QWidget()
+        self.properties_layout = QVBoxLayout(self.properties_container)
+        self.properties_container.setLayout(self.properties_layout)
+        self.ui.properties_area.setWidget(self.properties_container)
+        self.ui.properties_area.setWidgetResizable(True)
+        self.properties_layout.setAlignment(Qt.AlignTop)
+
+
         # ---- CONNECT SIGNALS ----
         self.ui.apply_button.clicked.connect(self.on_apply_button_clicked)
 
@@ -82,14 +96,60 @@ class IndicatorWindow(QMainWindow):
         clickable_item = ClickableFrame(indicator_name, True, self)
         self.current_indicators_layout.addWidget(clickable_item)
 
+    def open_color_picker(self, color_button):
+        color = QColorDialog.getColor() # open dialog
+        if color.isValid():
+            color_button.setStyleSheet(f"background-color: {color.name()};")  # change button color
+            # TODOOOOO set color in some data structure for current indicators
+
     def on_apply_button_clicked(self):
         indicator_data = {}
         for i in range(self.current_indicators_layout.count()):
             widget = self.current_indicators_layout.itemAt(i).widget()
             ind_text = widget.label.text()
-            params = "shi idk" # TODOOOOOOOO need to implement in ui
+            params = "shi idk"
             indicator_data[ind_text] = params
 
         self.data_submitted.emit(indicator_data)
         self.close()
+
+    def show_properties(self, indicator_name):
+        while self.properties_layout.count():
+            item = self.properties_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        param_list = self.get_function_parameters(indicator_name)
+
+        for param in list(param_list)[1:]: # skip ohlc param
+            param_layout = QHBoxLayout()
+            param_layout.setSpacing(2)
+            param_layout.setContentsMargins(0, 2, 0, 0)
+            label = QLabel(param)
+            param_layout.addWidget(label)
+            # TODOOOOO figure out user input stuff and put in param_layout
+            self.properties_layout.addWidget(label)
+
+        # add color picker
+        colorpicker_layout = QHBoxLayout()
+        colorpicker_layout.setSpacing(2)
+        colorpicker_layout.setContentsMargins(0, 2, 0, 0)
+        colorpicker_layout.setAlignment(Qt.AlignLeft)
+        color_label = QLabel("color:")
+        colorpicker_layout.addWidget(color_label)
+
+        color_button = QPushButton()
+        colorpicker_layout.addWidget(color_button)
+        color_button.clicked.connect(lambda: self.open_color_picker(color_button))
+        colorpicker_widget = QWidget()
+        colorpicker_widget.setLayout(colorpicker_layout)
+        self.properties_layout.addWidget(colorpicker_widget)
+
+
+    # --- SPECIAL ---
+
+    def get_function_parameters(self, key):
+        return [param.name for param in inspect.signature(self.function_dict[key]).parameters.values()]
+
+
 

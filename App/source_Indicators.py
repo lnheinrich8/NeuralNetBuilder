@@ -1,5 +1,9 @@
 import pandas as pd
 
+#
+# OHLC NEEDS TO BE FIRST PARAM IN EVERY FUNCTION
+# current normalized params: ohlc, period
+
 def rsi(ohlc, period = 14):
     delta = ohlc["close"].diff()
     up, down = delta.copy(), delta.copy()
@@ -17,17 +21,16 @@ def ema(ohlc, period = 10):
     return pd.Series(ohlc["close"].ewm(span=period, adjust=False).mean(), name="EMA")
 
 
-# this will grow with every addition of an indicator
-def get_indicator_function_dictiary():
+# --- SPECIAL ---
 
+# this will grow with every addition of an indicator
+def get_indicator_function_dict():
     function_dictionary = {
         'SMA': sma,
         'EMA': ema
     }
-
     return function_dictionary
 
 # this will grow with every addition of an indicator
 def get_indicator_list():
-    indicator_list = ['SMA', 'EMA']
-    return indicator_list
+    return list(get_indicator_function_dict().keys())

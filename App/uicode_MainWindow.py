@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
         self.df = None
 
         self.current_indicators = {}
-        self.indicator_functions = ic.get_indicator_function_dictiary()
+        self.indicator_functions = ic.get_indicator_function_dict()
 
         self.model_params = None
 
