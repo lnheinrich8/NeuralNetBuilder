@@ -71,7 +71,7 @@ class Ui_Indicator(object):
         self.properties_area.setWidget(self.layerCustomizationWidget_3)
         self.properties_label = QLabel(Indicator)
         self.properties_label.setObjectName(u"properties_label")
-        self.properties_label.setGeometry(QRect(232, 10, 61, 16))
+        self.properties_label.setGeometry(QRect(232, 10, 231, 16))
 
         self.retranslateUi(Indicator)
 

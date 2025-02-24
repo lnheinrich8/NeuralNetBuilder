@@ -66,8 +66,6 @@ class MainWindow(QMainWindow):
             self.ui.ticker_combobox.addItem(ticker, ticker)
         self.ui.ticker_combobox.setCurrentIndex(-1)
 
-        self.ui.indicators_button.setEnabled(False)
-
         self.ui.forecast_progress_label.setVisible(False)
         self.ui.createmodel_button.setEnabled(False)
         self.ui.train_button.setEnabled(False)
@@ -113,16 +111,21 @@ class MainWindow(QMainWindow):
         ticker = self.ui.ticker_combobox.currentText()
         self.df = mc.get_data(ticker)
 
-        self.ui.indicators_button.setEnabled(True)
         if self.model is None:
             self.ui.createmodel_button.setEnabled(True)
 
         self.graph_widget.set_data(self.df, 'close') # closing price hard coded for the line graph
 
         for key, params in self.current_indicators.items():
+            # period
+            period = params['period']
+            # color
+            hex_color = params['color']
+
+            # generate indicator df
             function = self.indicator_functions[key]
-            data = function(self.df)
-            self.graph_widget.add_indicator(key, data)
+            data = function(self.df, period) # use params
+            self.graph_widget.add_line_indicator(key, data, hex_color) # use color (from params)
 
 
     #
@@ -159,10 +162,17 @@ class MainWindow(QMainWindow):
         self.graph_widget.clear_indicators()
         self.current_indicators = indicator_data
 
-        for key, params in indicator_data.items():
-            function = self.indicator_functions[key]
-            data = function(self.df)
-            self.graph_widget.add_indicator(key, data) # TODOOOOO need params from IndicatorWindow
+        if self.df is not None:
+            for key, params in self.current_indicators.items():
+                # period
+                period = params['period']
+                # color
+                hex_color = params['color']
+
+                # generate indicator df
+                function = self.indicator_functions[key]
+                data = function(self.df, period) # use params
+                self.graph_widget.add_line_indicator(key, data, hex_color) # use color (from params)
 
     #
     # forecast model stuff
@@ -171,7 +181,7 @@ class MainWindow(QMainWindow):
     def on_createmodel_button_clicked(self):
         filtered_df = self.df.drop(columns=['date'], errors='ignore')
         column_names = filtered_df.columns.tolist()
-        target_variable = 'close' # TODOOOOOOOOOOOO hardcoded
+        target_variable = 'close'
 
         self.window = CreateModelWindow(column_names, target_variable)
         # for data recieved

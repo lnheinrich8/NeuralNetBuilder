@@ -7,7 +7,8 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QFrame,
     QPushButton,
-    QColorDialog
+    QColorDialog,
+    QSpinBox
 )
 
 import inspect
@@ -41,7 +42,7 @@ class ClickableFrame(QFrame):
             self.parent_window.add_indicator_to_current(indicator_name)
 
 
-class IndicatorWindow(QMainWindow):
+class IndicatorWindow(QMainWindow): # TODOOOOOOOOO be able to add multiple of same indicator (use IDs maybe)
     data_submitted = Signal(object)
 
     def __init__(self, current_indicators, parent=None):
@@ -49,6 +50,7 @@ class IndicatorWindow(QMainWindow):
         self.ui = Ui_Indicator()
         self.ui.setupUi(self)
 
+        self.current_indicators = current_indicators
         self.function_dict = ic.get_indicator_function_dict()
 
         # initialize available indicators
@@ -63,7 +65,6 @@ class IndicatorWindow(QMainWindow):
             clickable_item = ClickableFrame(indicator_name, False, self)
             self.available_indicators_layout.addWidget(clickable_item)
 
-
         # initialize current indicators
         self.current_indicators_container = QWidget()
         self.current_indicators_layout = QVBoxLayout(self.current_indicators_container)
@@ -75,7 +76,6 @@ class IndicatorWindow(QMainWindow):
         for key, params in current_indicators.items():
             clickable_item = ClickableFrame(key, True, self)
             self.current_indicators_layout.addWidget(clickable_item)
-
 
         # initialize properties
         self.properties_container = QWidget()
@@ -92,64 +92,91 @@ class IndicatorWindow(QMainWindow):
 
     # ---- SLOT FUNCTIONS ----
 
-    def add_indicator_to_current(self, indicator_name):
-        clickable_item = ClickableFrame(indicator_name, True, self)
-        self.current_indicators_layout.addWidget(clickable_item)
+    def spinbox_changed(self, indicator_name, spinbox):
+        self.current_indicators[indicator_name]['period'] = spinbox.value()  # Get spinbox value
 
-    def open_color_picker(self, color_button):
+    def open_color_picker(self, indicator_name, color_button):
         color = QColorDialog.getColor() # open dialog
-        if color.isValid():
-            color_button.setStyleSheet(f"background-color: {color.name()};")  # change button color
-            # TODOOOOO set color in some data structure for current indicators
+        hex_color = color.name()
+        color_button.setStyleSheet(f"background-color: {hex_color};")  # change button color
+        self.current_indicators[indicator_name]['color'] = hex_color
 
     def on_apply_button_clicked(self):
-        indicator_data = {}
-        for i in range(self.current_indicators_layout.count()):
-            widget = self.current_indicators_layout.itemAt(i).widget()
-            ind_text = widget.label.text()
-            params = "shi idk"
-            indicator_data[ind_text] = params
-
-        self.data_submitted.emit(indicator_data)
+        self.data_submitted.emit(self.current_indicators)
         self.close()
 
+
+    # ---- SLOT FUNCTIONS FROM CLICKABLE INDS ----
+
     def show_properties(self, indicator_name):
+        # clear properties_layout
         while self.properties_layout.count():
             item = self.properties_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
 
-        param_list = self.get_function_parameters(indicator_name)
+        self.ui.properties_label.setText(f"Properties ({indicator_name})")
 
-        for param in list(param_list)[1:]: # skip ohlc param
-            param_layout = QHBoxLayout()
-            param_layout.setSpacing(2)
-            param_layout.setContentsMargins(0, 2, 0, 0)
-            label = QLabel(param)
-            param_layout.addWidget(label)
-            # TODOOOOO figure out user input stuff and put in param_layout
-            self.properties_layout.addWidget(label)
+        param_dict = self.current_indicators[indicator_name]
 
-        # add color picker
-        colorpicker_layout = QHBoxLayout()
-        colorpicker_layout.setSpacing(2)
-        colorpicker_layout.setContentsMargins(0, 2, 0, 0)
-        colorpicker_layout.setAlignment(Qt.AlignLeft)
-        color_label = QLabel("color:")
-        colorpicker_layout.addWidget(color_label)
+        for param, val in param_dict.items():
+            if param == 'color':
+                # add color picker
+                colorpicker_layout = QHBoxLayout()
+                colorpicker_layout.setSpacing(2)
+                colorpicker_layout.setContentsMargins(0, 2, 0, 0)
+                colorpicker_layout.setAlignment(Qt.AlignLeft)
+                color_label = QLabel("color:")
+                colorpicker_layout.addWidget(color_label)
 
-        color_button = QPushButton()
-        colorpicker_layout.addWidget(color_button)
-        color_button.clicked.connect(lambda: self.open_color_picker(color_button))
-        colorpicker_widget = QWidget()
-        colorpicker_widget.setLayout(colorpicker_layout)
-        self.properties_layout.addWidget(colorpicker_widget)
+                color_button = QPushButton()
+                # current color
+                hex_color = self.current_indicators[indicator_name]['color']
+                color_button.setStyleSheet(f"background-color: {hex_color};")
+                colorpicker_layout.addWidget(color_button)
+                color_button.clicked.connect(lambda: self.open_color_picker(indicator_name, color_button))
+                colorpicker_widget = QWidget()
+                colorpicker_widget.setLayout(colorpicker_layout)
+                self.properties_layout.addWidget(colorpicker_widget)
+            else:
+                param_layout = QHBoxLayout()
+                param_layout.setSpacing(2)
+                param_layout.setContentsMargins(0, 2, 0, 0)
+                param_layout.setAlignment(Qt.AlignLeft)
 
+                # label
+                label = QLabel(f"{param}:")
+                param_layout.addWidget(label)
+
+                # spinbox
+                spinbox = QSpinBox()
+                spinbox.setValue(val)  # default value from param_dict
+                spinbox.setMinimum(1)
+                spinbox.setMaximum(1000)
+                spinbox.setButtonSymbols(QSpinBox.NoButtons)
+                spinbox.valueChanged.connect(lambda value, sb=spinbox: self.spinbox_changed(indicator_name, sb))
+
+                param_layout.addWidget(spinbox)
+                self.properties_layout.addLayout(param_layout)  # Add layout instead of label
+
+
+    def add_indicator_to_current(self, indicator_name):
+        clickable_item = ClickableFrame(indicator_name, True, self)
+        self.current_indicators_layout.addWidget(clickable_item)
+
+        # initialize default params from function signature
+        param_dict = self.get_function_parameters(indicator_name)
+        param_dict = dict(list(param_dict.items())[1:]) # skip ohlc param
+        # set default color
+        param_dict['color'] = '#ffd52e'
+
+        self.current_indicators[indicator_name] = param_dict
+
+        self.show_properties(indicator_name)
 
     # --- SPECIAL ---
 
     def get_function_parameters(self, key):
-        return [param.name for param in inspect.signature(self.function_dict[key]).parameters.values()]
-
-
+        return {param.name: param.default if param.default is not param.empty else None
+                for param in inspect.signature(self.function_dict[key]).parameters.values()}
 

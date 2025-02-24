@@ -59,9 +59,14 @@ class GraphWidget(QWidget):
         self.visible_end = len(self.df)
         self.update()
 
-    def add_indicator(self, indicator_key, indicator_df):
-        self.indicators[indicator_key] = indicator_df
+    def add_line_indicator(self, indicator_key, indicator_df, color):
+        indicator_dict = {}
+        indicator_dict['indicator_df'] = indicator_df
+        indicator_dict['color'] = color
+        self.indicators[indicator_key] = indicator_dict
         self.update()
+
+
     def remove_indicator(self, indicator_key): # needs testing
         self.indicators.pop(indicator_key, None)
         self.update()
@@ -238,7 +243,7 @@ class GraphWidget(QWidget):
 
 
     def draw_indicators(self, painter, indicators):
-        painter.setPen(QPen(self.forecast_line_color, 2)) # TODOOOOOOOOOO change color based on set indicator color
+        # painter.setPen(QPen(self.forecast_line_color, 2)) # TODOOOOOOOOOO change color based on set indicator color
         rect = self.rect()
 
         data_min, data_max = self.get_global_minmax()
@@ -249,7 +254,12 @@ class GraphWidget(QWidget):
 
         y_scale = (rect.height() - 2 * self.margin) / data_range
 
-        for key, df in indicators.items():
+        for key, ind_dict in indicators.items():
+            df = ind_dict['indicator_df']
+            color = QColor(ind_dict['color'])
+
+            painter.setPen(QPen(color, 2)) # TODOOOOOOOOOO change color based on set indicator color
+
             visible_data = df.iloc[self.visible_end - self.visible_window:self.visible_end]
 
             column_data = pd.to_numeric(visible_data)
@@ -275,7 +285,8 @@ class GraphWidget(QWidget):
 
         # min/max for indicators
         indicator_min, indicator_max = float('inf'), float('-inf')
-        for key, ind_df in self.indicators.items():
+        for key, ind_dict in self.indicators.items():
+            ind_df = ind_dict['indicator_df']
             visible_data = ind_df.iloc[self.visible_end - self.visible_window:self.visible_end]
             if visible_data.empty:
                 continue
