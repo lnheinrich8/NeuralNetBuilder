@@ -243,7 +243,6 @@ class GraphWidget(QWidget):
 
 
     def draw_indicators(self, painter, indicators):
-        # painter.setPen(QPen(self.forecast_line_color, 2)) # TODOOOOOOOOOO change color based on set indicator color
         rect = self.rect()
 
         data_min, data_max = self.get_global_minmax()
@@ -258,7 +257,7 @@ class GraphWidget(QWidget):
             df = ind_dict['indicator_df']
             color = QColor(ind_dict['color'])
 
-            painter.setPen(QPen(color, 2)) # TODOOOOOOOOOO change color based on set indicator color
+            painter.setPen(QPen(color, 2))
 
             visible_data = df.iloc[self.visible_end - self.visible_window:self.visible_end]
 

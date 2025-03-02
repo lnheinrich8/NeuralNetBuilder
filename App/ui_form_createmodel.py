@@ -102,12 +102,13 @@ class Ui_CreateModel(object):
         self.stepfuture_spinbox.setMaximumSize(QSize(30, 16777215))
         self.stepfuture_spinbox.setButtonSymbols(QAbstractSpinBox.NoButtons)
         self.stepfuture_spinbox.setMinimum(1)
+        self.stepfuture_spinbox.setMaximum(100)
 
         self.horizontalLayout_2.addWidget(self.stepfuture_spinbox)
 
         self.layoutWidget2 = QWidget(CreateModel)
         self.layoutWidget2.setObjectName(u"layoutWidget2")
-        self.layoutWidget2.setGeometry(QRect(450, 100, 90, 27))
+        self.layoutWidget2.setGeometry(QRect(450, 100, 94, 27))
         self.horizontalLayout_3 = QHBoxLayout(self.layoutWidget2)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
@@ -121,13 +122,14 @@ class Ui_CreateModel(object):
         self.steppast_spinbox.setMaximumSize(QSize(30, 16777215))
         self.steppast_spinbox.setButtonSymbols(QAbstractSpinBox.NoButtons)
         self.steppast_spinbox.setMinimum(1)
+        self.steppast_spinbox.setMaximum(200)
         self.steppast_spinbox.setValue(10)
 
         self.horizontalLayout_3.addWidget(self.steppast_spinbox)
 
         self.layoutWidget3 = QWidget(CreateModel)
         self.layoutWidget3.setObjectName(u"layoutWidget3")
-        self.layoutWidget3.setGeometry(QRect(450, 180, 123, 27))
+        self.layoutWidget3.setGeometry(QRect(450, 180, 127, 27))
         self.horizontalLayout_4 = QHBoxLayout(self.layoutWidget3)
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
         self.horizontalLayout_4.setContentsMargins(0, 0, 0, 0)
@@ -141,6 +143,7 @@ class Ui_CreateModel(object):
         self.forecastperiod_spinbox.setMaximumSize(QSize(30, 16777215))
         self.forecastperiod_spinbox.setButtonSymbols(QAbstractSpinBox.NoButtons)
         self.forecastperiod_spinbox.setMinimum(1)
+        self.forecastperiod_spinbox.setMaximum(100)
 
         self.horizontalLayout_4.addWidget(self.forecastperiod_spinbox)
 
