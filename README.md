@@ -12,4 +12,5 @@ Neural net builder window:
 ![Screenshot 2025-04-14 190706](https://github.com/user-attachments/assets/de348a29-9149-44f1-8db8-b8f4fdd1a933)
 
 Using the model to predict price:
+
 ![Screenshot 2025-04-14 190746](https://github.com/user-attachments/assets/290daaab-486b-416b-b4e5-d4bb620a6251)
